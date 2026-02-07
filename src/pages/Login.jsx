@@ -1,99 +1,189 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, Send, Mail, Lock, Loader2, RefreshCw } from 'lucide-react';
 
-const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  // --- 1. เพิ่ม State สำหรับเก็บค่า username ---
-  const [username, setUsername] = useState(''); 
+const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [timer, setTimer] = useState(0); 
+  const [isSent, setIsSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState(''); // แสดงข้อความสถานะแทน alert
 
-  const handleDemoSignIn = (e) => {
-    e.preventDefault(); 
-    
-    // --- 2. ตรวจสอบเงื่อนไข และบันทึก Role ลง LocalStorage ---
-    if (username === 'admin@ku.th') {
-      localStorage.setItem('userRole', 'admin');
-    } else if (username === 'teacher@ku.th') {
-      localStorage.setItem('userRole', 'teacher');
-    } else {
-      // ถ้าพิมพ์อย่างอื่น หรือไม่พิมพ์เลย ให้เป็น student
-      localStorage.setItem('userRole', 'student');
+  useEffect(() => {
+    let interval = null;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
     }
+    return () => clearInterval(interval);
+  }, [timer]);
 
-    // ไปหน้า Dashboard
-    navigate('/dashboard'); 
+  const handleSendOTP = async () => {
+    if (!email) {
+        setStatusMsg('❌ กรุณากรอกอีเมล');
+        return;
+    }
+    
+    setIsLoading(true);
+    setStatusMsg('⏳ กำลังส่งรหัส...');
+    setOtp(''); 
+
+    try {
+      const response = await fetch('https://dave-unincited-ariyah.ngrok-free.dev/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        setIsSent(true);
+        setTimer(10); // ⚡ ปรับเหลือ 10 วินาทีตามคำขอ!
+        setStatusMsg('✅ ส่งรหัสใหม่เรียบร้อยแล้ว');
+      } else {
+        const data = await response.json();
+        setStatusMsg(`❌ ${data.message}`);
+      }
+    } catch (error) {
+      setStatusMsg('❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+    } finally {
+      setIsLoading(false);
+      // หายไปหลังจาก 3 วินาที
+      setTimeout(() => setStatusMsg(''), 3000);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setStatusMsg('');
+
+    // 🌟 สร้าง Payload ให้ตรงกับที่ Backend กำหนด (ใช้ email และ otp_code)
+    const payload = { 
+      email: email.trim(), 
+      otp_code: otp.trim() // นำค่าจาก State 'otp' มาใส่ในชื่อ 'otp_code'
+    };
+
+    try {
+      const response = await fetch('https://dave-unincited-ariyah.ngrok-free.dev/auth/verify-otp', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true' // ป้องกันหน้า Warning ของ ngrok
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // เก็บข้อมูลลงใน localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        setStatusMsg('✅ เข้าสู่ระบบสำเร็จ!');
+        
+        // หน่วงเวลาเล็กน้อยให้ User เห็นข้อความสำเร็จก่อนเปลี่ยนหน้า
+        setTimeout(() => {
+          navigate('/dashboard'); 
+        }, 1000);
+      } else {
+        // Backend จะส่งข้อความผิดพลาดกลับมา (เช่น OTP ไม่ถูกต้องหรือหมดอายุ)
+        setStatusMsg(`❌ ${data.message || 'รหัส OTP ไม่ถูกต้อง'}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setStatusMsg('❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#2D2D86] p-4 font-sans">
-      
-      <div className="bg-[#D9D9D9] w-full max-w-[360px] p-10 flex flex-col items-center shadow-2xl rounded-sm">
-        
-        <div className="mb-6 text-center">
-          <div className="flex flex-col items-center">
-             <div className="text-[#2D2D86] text-5xl font-bold leading-none">Sci</div>
-             <div className="text-[#006837] text-xl font-bold tracking-[0.2em] -mt-1 flex items-center">
-               KUSRC 
-               <span className="w-2 h-2 bg-yellow-400 rounded-full ml-1 mb-2"></span>
-             </div>
-          </div>
-          <h2 className="text-2xl font-bold text-black mt-4">Login</h2>
+    <div className="min-h-screen flex font-sans bg-gray-50 overflow-hidden">
+      {/* ส่วนรูปภาพ */}
+      <div className="hidden lg:block lg:w-[55%] relative">
+        <img 
+          src="https://img.freepik.com/free-photo/young-asian-teacher-man-teaching-student-university-classroom_7861-3101.jpg" 
+          alt="Teacher"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#2D2D86]/80 to-transparent"></div>
+        <div className="absolute bottom-20 left-16 text-white max-w-md">
+          <h2 className="text-6xl font-black mb-4 tracking-tight">KU Src Booking</h2>
         </div>
+      </div>
 
-        <form className="w-full space-y-4" onSubmit={handleDemoSignIn}>
+      {/* ส่วนฟอร์ม */}
+      <div className="w-full lg:w-[45%] bg-white flex flex-col justify-center relative p-8 md:p-16">
+        <div className="max-w-[400px] mx-auto w-full">
           
-          <div className="w-full">
-            <label className="block text-black font-bold text-sm mb-1">username</label>
-            <input 
-              type="text" 
-              // --- 3. ผูกค่าเข้ากับ State ---
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin@ku.th หรือ teacher@ku.th"
-              className="w-full bg-white border-none h-10 px-3 focus:outline-none shadow-inner text-sm"
-            />
+          <div className="mb-10 text-right">
+            <h1 className="text-6xl font-black italic tracking-tighter leading-[0.8] text-[#2D2D86]">
+              <span className="text-[#B4C424]">KU</span><br />LOGIN
+            </h1>
           </div>
 
-          <div className="w-full">
-            <label className="block text-black font-bold text-sm mb-1">password</label>
-            <div className="relative">
+          {/* ข้อความสถานะ (Status Message) */}
+          <div className={`h-6 mb-4 text-sm font-bold transition-all ${statusMsg ? 'opacity-100' : 'opacity-0'}`}>
+            <p className={statusMsg.includes('❌') ? 'text-red-500' : 'text-green-500'}>{statusMsg}</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-gray-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <Mail size={12} /> KU Email
+              </label>
               <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="••••••••"
-                className="w-full bg-white border-none h-10 px-3 focus:outline-none shadow-inner pr-10"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent focus:border-[#B4C424] rounded-2xl py-4 px-5 outline-none font-semibold transition-all"
+                placeholder="student.n@ku.th"
               />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-800"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
             </div>
-          </div>
 
-          <div className="pt-4">
             <button 
-              type="submit" 
-              className="bg-[#B4C424] text-black font-bold py-1.5 px-6 shadow-md hover:bg-[#a3b320] active:scale-95 transition-all border-none uppercase text-sm tracking-wider"
-            >
-              sign in
+                type="button"
+                onClick={handleSendOTP}
+                disabled={timer > 0 || isLoading}
+                className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all active:scale-95 shadow-md
+                  ${timer > 0 ? 'bg-gray-100 text-gray-400' : 'bg-[#2D2D86] text-white hover:bg-[#1e1e61]'}`}
+              >
+                {isLoading ? <Loader2 className="animate-spin" size={20} /> : isSent ? <RefreshCw size={20} /> : <Send size={20} />}
+                {timer > 0 ? `ขอรหัสใหม่ใน (${timer}s)` : isSent ? 'ส่งรหัสอีกครั้ง' : 'ขอรหัส OTP'}
             </button>
-          </div>
-          
-          {/* ส่วนแนะนำการทดสอบ Role */}
-          <div className="mt-6 p-3 bg-white/50 rounded text-[9px] text-gray-600 leading-relaxed">
-            <p className="font-bold border-b border-gray-300 mb-1">Demo Credentials:</p>
-            <p>• Admin: <span className="text-[#2D2D86]">admin@ku.th</span></p>
-            <p>• Teacher: <span className="text-[#2D2D86]">teacher@ku.th</span></p>
-            <p>• Student: พิมพ์อะไรก็ได้ หรือปล่อยว่าง</p>
-          </div>
 
-        </form>
+            <div className="space-y-2 pt-2">
+              <label className="text-gray-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <Lock size={12} /> Verification Code
+              </label>
+              <input 
+                type="text"
+                required
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full bg-gray-50 border-2 border-transparent focus:border-[#B4C424] rounded-2xl py-4 px-5 outline-none text-center text-3xl tracking-[0.3em] font-black text-[#2D2D86]"
+                placeholder="000000"
+              />
+            </div>
+
+            <button 
+              type="submit"
+              disabled={isLoading || otp.length < 6}
+              className="w-full bg-[#B4C424] text-white py-4 rounded-2xl text-xl font-black shadow-lg hover:brightness-105 active:scale-95 transition-all disabled:opacity-50 mt-4"
+            >
+              {isLoading ? <Loader2 className="animate-spin mx-auto" /> : 'เข้าสู่ระบบ'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default Login;
