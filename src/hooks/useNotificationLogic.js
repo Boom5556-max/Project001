@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
-import { API_BASE_URL } from "../api/config.js";
+import api from "../api/axios"; // ใช้ Axios Instance ที่เราเซ็ต Interceptor ไว้แล้ว
 
 export const useNotificationLogic = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -13,78 +13,61 @@ export const useNotificationLogic = () => {
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-    if (!token) return setIsLoading(false);
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const decoded = jwtDecode(token);
       const role = decoded?.role?.toLowerCase().trim() || "student";
       setUserRole(role);
 
-      const headers = {
-        "ngrok-skip-browser-warning": "true",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
       if (role === "teacher" || role === "staff") {
+        // --- 👨‍🏫 สำหรับ Teacher/Staff: ยิง 3 เส้นพร้อมกัน ---
         const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/bookings/pending`, { headers }),
-          fetch(`${API_BASE_URL}/bookings/approved`, { headers }),
-          fetch(`${API_BASE_URL}/bookings/rejected`, { headers }),
+          api.get("/bookings/pending"),
+          api.get("/bookings/approved"),
+          api.get("/bookings/rejected"),
         ]);
 
-        const [p, a, r] = await Promise.all([
-          pendingRes.ok ? pendingRes.json() : [],
-          approvedRes.ok ? approvedRes.json() : [],
-          rejectedRes.ok ? rejectedRes.json() : [],
-        ]);
-
-        setPendingRequests(Array.isArray(p) ? p : p.data || []);
-        setApprovedRequests(Array.isArray(a) ? a : a.data || []);
-        setRejectedRequests(Array.isArray(r) ? r : r.data || []);
+        // Axios เก็บ data ไว้ใน .data เลย (ถ้าไม่มีให้ default เป็น array ว่าง)
+        setPendingRequests(pendingRes.data?.data || pendingRes.data || []);
+        setApprovedRequests(approvedRes.data?.data || approvedRes.data || []);
+        setRejectedRequests(rejectedRes.data?.data || rejectedRes.data || []);
       } else {
-        const res = await fetch(`${API_BASE_URL}/bookings`, { headers });
-        if (res.ok) {
-          const allData = await res.json();
-          const dataArray = Array.isArray(allData) ? allData : allData.data || [];
-          setPendingRequests(dataArray.filter(i => i.status?.toLowerCase() === "pending"));
-          setApprovedRequests(dataArray.filter(i => i.status?.toLowerCase() === "approved"));
-          setRejectedRequests(dataArray.filter(i => i.status?.toLowerCase() === "rejected"));
-        }
+        // --- 🎓 สำหรับ Student: ดึงทั้งหมดแล้วมา Filter เอง ---
+        const res = await api.get("/bookings");
+        const allData = res.data?.data || res.data || [];
+        
+        setPendingRequests(allData.filter(i => i.status?.toLowerCase() === "pending"));
+        setApprovedRequests(allData.filter(i => i.status?.toLowerCase() === "approved"));
+        setRejectedRequests(allData.filter(i => i.status?.toLowerCase() === "rejected"));
       }
     } catch (error) {
-      console.error("❌ Fetch Error:", error);
+      console.error("❌ Axios Fetch Error:", error.response?.data || error.message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  // ฟังก์ชันอัปเดตสถานะ (Approve / Reject)
   const handleUpdateStatus = async (bookingId, status) => {
-    const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify({ status }),
-      });
+      // ใช้ api.put สั้นๆ ไม่ต้องส่ง Headers/Token เองเพราะมี Interceptor แล้ว
+      const response = await api.put(`/bookings/${bookingId}/status`, { status });
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 204) {
         setSelectedBooking(null);
-        fetchBookings();
-      } else {
-        const err = await response.json();
-        alert(err.message || "Failed to update status");
+        fetchBookings(); // ดึงข้อมูลใหม่มาโชว์
       }
     } catch (error) {
-      alert("Network error");
+      const errMsg = error.response?.data?.message || "Failed to update status";
+      alert(errMsg);
     }
   };
 
-  // Helper ดึงชื่อ (บวก Logic ป้องกันค่าว่าง)
+  // Helper ดึงชื่อ (Logic เดิมของนาย ดีอยู่แล้วครับ)
   const getFullName = (req) => {
     if (!req) return "ไม่ระบุชื่อ";
     const first = req.teacher_name || req.name || req.first_name || "";
@@ -92,7 +75,9 @@ export const useNotificationLogic = () => {
     return `${first} ${last}`.trim() || "ไม่ระบุชื่อ";
   };
 
-  useEffect(() => { fetchBookings(); }, [fetchBookings]);
+  useEffect(() => { 
+    fetchBookings(); 
+  }, [fetchBookings]);
 
   return {
     pendingRequests, approvedRequests, rejectedRequests,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL } from "../api/config.js";
+import api from "../api/axios"; // ใช้ Instance กลางที่เราเซ็ตไว้
 import { formatCalendarEvents } from "../utils/calendarHelper.js";
 
 export const useCalendarData = (roomIdFromUrl) => {
@@ -12,19 +12,19 @@ export const useCalendarData = (roomIdFromUrl) => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/rooms/`, { 
-          headers: { "ngrok-skip-browser-warning": "true" } 
-        });
-        const data = await res.json();
+        // api.get จะแนบ ngrok-skip-browser-warning ให้อัตโนมัติ
+        const res = await api.get("/rooms/");
+        const data = res.data;
+
         if (data?.length > 0) {
           setRooms(data);
           // ลำดับความสำคัญ: ID จาก URL > ห้องแรกใน List
           setSelectedRoom(roomIdFromUrl || data[0].room_id);
         }
-      } catch (err) { 
-        console.error("Fetch Rooms Error:", err); 
-      } finally { 
-        setIsLoading(false); 
+      } catch (err) {
+        console.error("Fetch Rooms Error:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchRooms();
@@ -33,28 +33,30 @@ export const useCalendarData = (roomIdFromUrl) => {
   // 2. ดึงข้อมูลตารางเมื่อเปลี่ยนห้อง
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      if (!selectedRoom || !token) return;
-
-      const headers = { 
-        "ngrok-skip-browser-warning": "true", 
-        "Authorization": `Bearer ${token}` 
-      };
+      if (!selectedRoom) return;
 
       try {
+        // ใช้ Promise.all ยิงคู่ ทั้ง Booking และ Schedule
+        // Axios จะจัดการเรื่อง Token ผ่าน Interceptor ให้เอง
         const [bookRes, schedRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/bookings/allBooking/${selectedRoom}?status=approved`, { headers }),
-          fetch(`${API_BASE_URL}/schedule/${selectedRoom}`, { headers })
+          api.get(`/bookings/allBooking/${selectedRoom}?status=approved`),
+          api.get(`/schedule/${selectedRoom}`)
         ]);
 
-        const bookingData = bookRes.ok ? await bookRes.json() : [];
-        const scheduleResponse = schedRes.ok ? await schedRes.json() : { schedules: [] };
+        // ดึงข้อมูลจาก .data (ถ้าตัวไหนพัง Axios จะเด้งไป catch ทันที)
+        const bookingData = bookRes.data || [];
+        const scheduleResponse = schedRes.data || { schedules: [] };
 
-        // 🚩 เรียกใช้ Helper จัด Format ข้อมูลที่แก้เรื่องวันวาร์ปแล้ว
-        const formatted = formatCalendarEvents(bookingData, scheduleResponse.schedules || []);
+        // 🚩 ส่งต่อให้ Helper จัดการ Format ข้อมูล
+        const formatted = formatCalendarEvents(
+          bookingData, 
+          scheduleResponse.schedules || []
+        );
         setEvents(formatted);
-      } catch (err) { 
-        console.error("Fetch Calendar Data Error:", err); 
+      } catch (err) {
+        console.error("Fetch Calendar Data Error:", err);
+        // กรณีเกิด Error เราล้าง Events เก่าออกเพื่อป้องกันข้อมูลสับสน
+        setEvents([]);
       }
     };
     fetchData();

@@ -10,6 +10,7 @@ export const useQRScannerLogic = (activeTab) => {
   const [isScanningFile, setIsScanningFile] = useState(false);
   const qrScannerRef = useRef(null);
 
+  // สกัด Room ID จาก URL หรือข้อความตรงๆ
   const extractRoomId = (text) => {
     try {
       if (text.startsWith("http")) {
@@ -26,19 +27,26 @@ export const useQRScannerLogic = (activeTab) => {
   const handleProcessScan = useCallback((decodedText) => {
     const roomId = extractRoomId(decodedText);
     setScanResult(decodedText);
+    
     if (navigator.vibrate) navigator.vibrate(100);
+
+    // ปิดกล้องทันทีที่เจอ QR เพื่อไม่ให้ทรัพยากรเครื่องค้าง
+    if (qrScannerRef.current && qrScannerRef.current.isScanning) {
+        qrScannerRef.current.stop().catch(err => console.error("Stop Error:", err));
+    }
 
     setTimeout(() => {
       if (roomId) {
+        // ส่งต่อไปหน้าแสดงสถานะห้อง (หน้านั้นจะใช้ Axios ดึงข้อมูลเอง)
         navigate(`/room-status/${roomId}`);
       } else {
         alert("ข้อมูล QR ไม่ถูกต้อง");
         setScanResult("");
       }
-    }, 1500);
+    }, 800); // ลดเวลาลงนิดนึงเพื่อให้แอปดูรวดเร็ว
   }, [navigate]);
 
-  // สแกนจากไฟล์รูปภาพโดยใช้ jsQR
+  // Logic การอ่านไฟล์รูปภาพ (Client-side Processing)
   const scanWithJsQR = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -47,7 +55,7 @@ export const useQRScannerLogic = (activeTab) => {
         img.onload = () => {
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
-          const maxSide = 800;
+          const maxSide = 1000; // เพิ่มความละเอียดนิดหน่อย
           let { width, height } = img;
 
           if (width > height) {
@@ -81,12 +89,15 @@ export const useQRScannerLogic = (activeTab) => {
         try {
           await scanner.start(
             { facingMode: "environment" },
-            { fps: 20, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+            { 
+              fps: 15, 
+              qrbox: { width: 250, height: 250 }, 
+              aspectRatio: 1.0 
+            },
             (decodedText) => {
               handleProcessScan(decodedText);
-              scanner.stop().catch(() => {});
             },
-            () => {} // ignore video frame failures
+            () => {} 
           );
           setErrorMsg("");
         } catch (err) {
@@ -98,6 +109,7 @@ export const useQRScannerLogic = (activeTab) => {
       startCamera();
     }
 
+    // Cleanup: ปิดกล้องเมื่อออกจาก Component หรือเปลี่ยน Tab
     return () => {
       if (qrScannerRef.current?.isScanning) {
         qrScannerRef.current.stop().catch(() => {});
@@ -106,14 +118,14 @@ export const useQRScannerLogic = (activeTab) => {
   }, [activeTab, handleProcessScan]);
 
   const handleFileChange = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     setIsScanningFile(true);
     try {
       const decodedText = await scanWithJsQR(file);
       handleProcessScan(decodedText);
     } catch (err) {
-      alert("ยังไม่พบ QR Code: แนะนำให้ซูมรูป QR ให้ใหญ่ขึ้นแล้วแคปหน้าจอใหม่ครับ");
+      alert("ไม่พบ QR Code ในรูปภาพ: ลองถ่ายให้ชัดขึ้นหรือแคปหน้าจอใหม่ครับ");
     } finally {
       setIsScanningFile(false);
       e.target.value = null;

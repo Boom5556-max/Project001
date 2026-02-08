@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../api/config.js";
+import api from "../api/axios"; // ใช้ Instance กลางที่รวม Token ไว้แล้ว
 
 export const useRoomStatusLogic = (id) => {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ export const useRoomStatusLogic = (id) => {
   const [error, setError] = useState(null);
 
   const fetchRoomStatus = useCallback(async () => {
+    // เช็ค Token เบื้องต้นก่อนยิง
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
@@ -19,25 +20,21 @@ export const useRoomStatusLogic = (id) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
-        method: "GET",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      // Axios: baseURL ถูกตั้งไว้แล้ว แค่เรียกเส้นที่ต้องการ
+      // Interceptor ใน axios.js จะแนบ Bearer Token และ ngrok header ให้เอง
+      const response = await api.get(`/bookings/${id}`);
 
-      if (!response.ok) {
-        if (response.status === 404)
-          throw new Error("ไม่พบข้อมูลห้องเรียนนี้ในระบบ");
-        throw new Error("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
-      }
-
-      const data = await response.json();
-      setRoomData(data);
+      // ข้อมูลพร้อมใช้ใน response.data
+      setRoomData(response.data);
     } catch (err) {
-      setError(err.message);
+      console.error("Fetch Room Status Error:", err);
+      
+      // Axios จัดการ Error มาให้ใน err.response
+      if (err.response?.status === 404) {
+        setError("ไม่พบข้อมูลห้องเรียนนี้ในระบบ");
+      } else {
+        setError(err.response?.data?.message || "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -47,6 +44,7 @@ export const useRoomStatusLogic = (id) => {
     if (id) fetchRoomStatus();
   }, [fetchRoomStatus, id]);
 
+  // Logic การเช็คสถานะห้อง (เหมือนเดิม)
   const isAvailable = roomData?.status_label === "ว่าง";
 
   const formatDate = (dateStr) => {

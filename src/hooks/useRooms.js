@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL } from "../api/config.js";
+import api from "../api/axios"; // ดึง axios instance ที่เราเซ็ตไว้มาใช้
 
 export const useRooms = () => {
   const [rooms, setRooms] = useState([]);
@@ -8,15 +8,15 @@ export const useRooms = () => {
   const fetchRooms = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/rooms/`, {
-        headers: { "ngrok-skip-browser-warning": "true" },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setRooms(data);
-      }
+      // Axios จะยิง GET ไปที่ baseURL + "/rooms/"
+      // และดึง Headers จาก api instance มาใส่ให้เองอัตโนมัติ
+      const response = await api.get("/rooms/");
+      
+      // Axios เก็บข้อมูลจาก JSON ไว้ใน property .data เรียบร้อยแล้ว
+      setRooms(response.data);
     } catch (error) {
-      console.error("Error fetching rooms:", error);
+      // ถ้า Error เช่น 404 หรือ 500 Axios จะเด้งมาที่นี่ทันที
+      console.error("Error fetching rooms:", error.response?.data || error.message);
     } finally {
       setIsLoading(false);
     }

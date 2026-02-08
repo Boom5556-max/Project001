@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL } from "../api/config";
+import api from "../api/axios"; // Import ตัว instance ที่เราสร้างไว้
 
 export const useAuth = () => {
   const [timer, setTimer] = useState(0);
@@ -22,22 +22,19 @@ export const useAuth = () => {
     }
     setIsLoading(true);
     setStatusMsg("⏳ กำลังส่งรหัส...");
-   try {
-      const res = await fetch(`${API_BASE_URL}/auth/request-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json","ngrok-skip-browser-warning": "true" },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        setIsSent(true);
-        setTimer(10);
-        setStatusMsg("✅ ส่งรหัสเรียบร้อยแล้ว");
-      } else {
-        const data = await res.json();
-        setStatusMsg(`❌ ${data.message}`);
-      }
+
+    try {
+      // Axios ไม่ต้องมี method: "POST" และไม่ต้อง JSON.stringify
+      const res = await api.post("/auth/request-otp", { email });
+      
+      // Axios เก็บข้อมูลไว้ใน .data ทันที
+      setIsSent(true);
+      setTimer(60); // ปรับเป็น 60 วินาทีตามมาตรฐาน
+      setStatusMsg("✅ ส่งรหัสเรียบร้อยแล้ว");
     } catch (err) {
-      setStatusMsg("❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+      // Axios จะโยน Error มาที่ catch เลยถ้า status ไม่ใช่ 2xx
+      const message = err.response?.data?.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้";
+      setStatusMsg(`❌ ${message}`);
     } finally {
       setIsLoading(false);
       setTimeout(() => setStatusMsg(""), 3000);
@@ -45,42 +42,26 @@ export const useAuth = () => {
   };
 
   const verifyOTP = async (email, otp) => {
-    setIsLoading(true); // เริ่มโหลด
-    setStatusMsg(""); // ล้างข้อความเก่า
-    
+    setIsLoading(true);
+    setStatusMsg("");
+
     try {
-      const payload = {
+      const res = await api.post("/auth/verify-otp", {
         email: email.trim(),
         otp_code: otp.trim(),
-      };
-
-      const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true" // กันหน้าขาวของ ngrok
-        },
-        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // 1. เก็บข้อมูลลงเครื่อง
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        
-        // 2. ส่งค่า success กลับไปให้ Login.jsx
-        return { success: true };
-      } else {
-        // 3. ถ้า Error ให้ส่งข้อความจาก Backend กลับไป
-        return { success: false, message: data.message || "รหัส OTP ไม่ถูกต้อง" };
-      }
+      const data = res.data; // ข้อมูลจาก Backend
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      
+      return { success: true };
     } catch (err) {
       console.error("Verify Error:", err);
-      return { success: false, message: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้" };
+      const message = err.response?.data?.message || "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้";
+      return { success: false, message };
     } finally {
-      setIsLoading(false); // เลิกโหลด
+      setIsLoading(false);
     }
   };
 

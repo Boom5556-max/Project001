@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { API_BASE_URL } from "../api/config.js";
+import api from "../api/axios"; // ใช้ axios instance ที่จัดการ headers ให้เราแล้ว
 
 export const useBookingLogic = (initialId) => {
   const navigate = useNavigate();
@@ -19,15 +19,13 @@ export const useBookingLogic = (initialId) => {
     purpose: "",
   });
 
-  // ดึงรายชื่อห้อง
+  // 1. ดึงรายชื่อห้อง (ใช้ Axios)
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/rooms/`, {
-          headers: { "ngrok-skip-browser-warning": "true" },
-        });
-        const data = await res.json();
-        setRooms(Array.isArray(data) ? data : []);
+        const res = await api.get("/rooms/");
+        // Axios เก็บข้อมูลใน res.data ทันที ไม่ต้อง await res.json()
+        setRooms(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Fetch rooms error:", err);
       }
@@ -48,45 +46,40 @@ export const useBookingLogic = (initialId) => {
 
     setIsLoading(true);
     setShowStatus(false);
+    
     const token = localStorage.getItem("token");
-
     if (!token) {
       navigate("/login");
       return;
     }
 
     try {
+      // ดึง Role เพื่อเลือก Endpoint
       const decoded = jwtDecode(token);
       const userRole = decoded?.role?.toLowerCase().trim() || "student";
 
-      let endpoint = `${API_BASE_URL}/bookings`;
+      let endpoint = "/bookings";
       if (userRole === "teacher") endpoint += "/teacher";
       if (userRole === "staff") endpoint += "/staff";
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      // 2. ส่งข้อมูลจอง (ใช้ Axios)
+      // ไม่ต้องส่ง headers มาเอง เพราะ api instance ของเราจัดการเรื่อง Token และ ngrok ให้แล้ว
+      const response = await api.post(endpoint, formData);
 
-      const data = await response.json();
+      // ถ้า Axios รันมาถึงบรรทัดนี้ได้ แปลว่า status code คือ 2xx (Success)
+      setIsRoomBusy(false);
+      setServerMessage(userRole === "staff" ? "✅ จองสำเร็จ" : "✅ ส่งคำขอจองสำเร็จ");
+      setShowStatus(true);
+      setTimeout(() => navigate("/dashboard"), 1500);
 
-      if (response.ok) {
-        setIsRoomBusy(false);
-        setServerMessage(userRole === "staff" ? "✅ จองสำเร็จ" : "✅ ส่งคำขอจองสำเร็จ");
-        setShowStatus(true);
-        setTimeout(() => navigate("/dashboard"), 1500);
-      } else {
-        setIsRoomBusy(true);
-        setServerMessage(data.message || "ห้องไม่ว่างในช่วงเวลานี้");
-        setShowStatus(true);
-      }
     } catch (error) {
-      setServerMessage("❌ เกิดข้อผิดพลาดในการส่งข้อมูล");
+      // Axios จะโยน error มาที่นี่ถ้า status code ไม่ใช่ 2xx
+      setIsRoomBusy(true);
+      
+      // ดึง message จาก Backend
+      const errorMessage = error.response?.data?.message || "ห้องไม่ว่างในช่วงเวลานี้";
+      setServerMessage(error.response ? errorMessage : "❌ เกิดข้อผิดพลาดในการส่งข้อมูล");
+      
       setShowStatus(true);
     } finally {
       setIsLoading(false);
