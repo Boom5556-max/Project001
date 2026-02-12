@@ -146,6 +146,8 @@ export const useNotificationLogic = () => {
     setSelectedBooking,
     handleUpdateStatus,
     getFullName,
-    fetchBookings
+    fetchBookings,
+    handleUpdateBooking, // ✅ เพิ่มบรรทัดนี้
+    handleCancelBooking // ✅ เพิ่มบรรทัดนี้
   };
 };
