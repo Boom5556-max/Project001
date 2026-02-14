@@ -7,22 +7,35 @@ export const formatCalendarEvents = (bookingsData, schedulesData) => {
   };
 
   const processItem = (item, type) => {
-    const d = new Date(item.date || item.booking_date || item.schedule_date);
-    const rawDate = !isNaN(d.getTime()) ? d.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" }) : "Invalid Date";
+    const dateSource = item.date || item.booking_date || item.schedule_date;
+    const d = new Date(dateSource);
+    
+    const rawDate = !isNaN(d.getTime()) 
+      ? d.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" }) 
+      : "Invalid Date";
 
     const isScheduleType = type === "schedule";
     
-    // 1. เช็คสถานะการงดใช้ห้อง
-    const isClosed = isScheduleType && (item.temporarily_closed === true || item.temporarily_closed === 1 || item.temporarily_closed === "1");
+    const isClosed = isScheduleType && (
+      item.temporarily_closed === true || 
+      item.temporarily_closed === 1 || 
+      item.temporarily_closed === "1"
+    );
 
-    // 🚩 2. จัดการชื่อที่จะโชว์ (Title)
-    // ถ้าเป็น Schedule และถูกปิด ให้เติม (งดใช้ห้อง) ข้างหน้าชื่อวิชา
-    const originalTitle = type === "booking" ? item.purpose : item.subject_name;
-    const displayTitle = isClosed ? `(งดใช้ห้อง) ${originalTitle}` : originalTitle;
+    // 🚩 1. จัดการชื่อที่จะโชว์: เพิ่มชื่อห้อง [Room Name] นำหน้าถ้ามีข้อมูล
+    const roomPrefix = item.room_name ? `[${item.room_name}] ` : "";
+    const originalTitle = type === "booking" 
+      ? (item.purpose || "จองใช้ห้อง") 
+      : (item.subject_name || "ตารางเรียน");
+
+    // ถ้างดใช้ห้องให้เติมคำว่า (งดใช้ห้อง) ข้างหน้าสุด
+    const displayTitle = isClosed 
+      ? `(งดใช้ห้อง) ${roomPrefix}${originalTitle}` 
+      : `${roomPrefix}${originalTitle}`;
 
     return {
       id: type === "booking" ? item.booking_id : item.schedule_id,
-      title: displayTitle, // 🚩 ใช้ชื่อที่ปรุงเสร็จแล้วตรงนี้
+      title: displayTitle, 
       start: `${rawDate}T${item.start_time || "00:00:00"}`,
       end: `${rawDate}T${item.end_time || "00:00:00"}`,
       
@@ -31,20 +44,36 @@ export const formatCalendarEvents = (bookingsData, schedulesData) => {
         isSchedule: isScheduleType,
         fullDate: formatThaiDate(rawDate),
         temporarily_closed: isClosed,
+        teacher_id: item.teacher_id, 
         teacher: `${item.teacher_name || ""} ${item.teacher_surname || ""}`.trim() || "ไม่ระบุอาจารย์",
-        startTime: (item.start_time || "00:00").substring(0, 5),
-        endTime: (item.end_time || "00:00").substring(0, 5),
+        startTime: String(item.start_time || "00:00").substring(0, 5),
+        endTime: String(item.end_time || "00:00").substring(0, 5),
+        subjectName: item.subject_name,
+        purpose: item.purpose,
+        roomName: item.room_name // เก็บชื่อห้องแยกไว้ใช้ใน Modal ด้วย
       },
 
-      // 3. ปรับสีให้เข้ากับสถานะงดใช้ห้อง
-      backgroundColor: isClosed ? "#fee2e2" : (type === "booking" ? "#2D2D86" : "#1e40af"),
-      borderColor: isClosed ? "#ef4444" : (type === "booking" ? "#B4C424" : "#3b82f6"),
-      textColor: isClosed ? "#ef4444" : "#ffffff", // ถ้างดใช้ห้องให้ตัวหนังสือออกสีแดง
+      // 🚩 2. ปรับสีให้แยกความต่าง (เข้ม/อ่อน)
+      // การจอง (Booking) = สีม่วงเข้มหลัก [#2D2D86]
+      // ตารางเรียน (Schedule) = สีน้ำเงินเข้ม [#1e40af]
+      backgroundColor: isClosed 
+        ? "#fee2e2" 
+        : (type === "booking" ? "#2D2D86" : "#1e40af"),
+      borderColor: isClosed 
+        ? "#ef4444" 
+        : (type === "booking" ? "#B4C424" : "#3b82f6"), // ขอบเหลืองมะนาวช่วยให้การจองเด่นขึ้น
+      textColor: isClosed ? "#ef4444" : "#ffffff",
+      borderWidth: isClosed ? "2px" : "1px",
     };
   };
 
-  const bookingEvents = (Array.isArray(bookingsData) ? bookingsData : []).map(b => processItem(b, "booking"));
-  const scheduleEvents = (Array.isArray(schedulesData) ? schedulesData : []).map(s => processItem(s, "schedule"));
+  const bookingEvents = (Array.isArray(bookingsData) ? bookingsData : [])
+    .map(b => processItem(b, "booking"))
+    .filter(event => !event.start.includes("Invalid Date"));
+
+  const scheduleEvents = (Array.isArray(schedulesData) ? schedulesData : [])
+    .map(s => processItem(s, "schedule"))
+    .filter(event => !event.start.includes("Invalid Date"));
 
   return [...bookingEvents, ...scheduleEvents];
 };

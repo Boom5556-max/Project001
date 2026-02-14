@@ -30,7 +30,7 @@ const UploadModal = ({ isOpen, onClose }) => {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/schedule/import`, {
+      const response = await fetch(`${API_BASE_URL}/schedules/import`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" },
         body: formData,
@@ -66,7 +66,7 @@ const UploadModal = ({ isOpen, onClose }) => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/schedule/confirm`, {
+      const response = await fetch(`${API_BASE_URL}/schedules/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

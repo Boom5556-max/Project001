@@ -9,16 +9,23 @@ const RoomSelector = ({ rooms, selectedRoom, onSelect }) => {
       </label>
       <div className="relative w-full max-w-sm">
         <select
-          value={selectedRoom}
+          // 🚩 ปรับให้รองรับค่าว่าง (กรณีแสดงทุกห้อง)
+          value={selectedRoom || ""}
           onChange={(e) => onSelect(e.target.value)}
-          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm font-bold rounded-xl block p-3 appearance-none cursor-pointer focus:ring-2 focus:ring-[#B4C424] outline-none shadow-sm transition-all"
+          className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm font-bold rounded-xl block p-3 appearance-none cursor-pointer focus:ring-2 focus:ring-[#B4C424] outline-none shadow-sm transition-all hover:bg-white"
         >
+          {/* 🚩 เพิ่มตัวเลือกสำหรับแสดงทุกห้อง */}
+          <option value="" className="text-indigo-600 font-black">
+             All Room
+          </option>
+
           {rooms.map((room) => (
             <option key={room.room_id} value={room.room_id}>
               {room.room_name} ({room.room_id})
             </option>
           ))}
         </select>
+        
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-[#2D2D86]">
           <ChevronDown size={18} />
         </div>
