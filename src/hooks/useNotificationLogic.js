@@ -2,24 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import api from "../api/axios";
 
-// ... import เหมือนเดิม ...
-
 export const useNotificationLogic = () => {
-  const [activeBookings, setActiveBookings] = useState({ pending: [], approved: [] });
-  const [historyBookings, setHistoryBookings] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [approvedRequests, setApprovedRequests] = useState([]);
+  const [historyRequests, setHistoryRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
   const [selectedBooking, setSelectedBooking] = useState(null);
-
-  // ✅ 1. ย้ายฟังก์ชันนี้มาไว้ใน useCallback หรือเขียนไว้ข้างนอก Export
-  const isPastDate = useCallback((dateStr) => {
-    if (!dateStr) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const bookingDate = new Date(dateStr);
-    bookingDate.setHours(0, 0, 0, 0);
-    return bookingDate < today;
-  }, []);
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -31,123 +20,79 @@ export const useNotificationLogic = () => {
 
     try {
       const decoded = jwtDecode(token);
-      const role = decoded?.role?.toLowerCase().trim() || "student";
-      const myId = decoded?.id || decoded?.sub;
+      const role = decoded?.role?.toLowerCase().trim() || "teacher";
       setUserRole(role);
 
-      // ✅ 2. ยิง 3 เส้นทางที่ถูกต้องตาม Backend (เอา /api ออกถ้า baseURL มีแล้ว)
-      // ถ้า baseURL นายคือ .../api ให้ลบ /api ข้างหน้าออกครับ
-      const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-        api.get("/bookings/pending"),
-        api.get("/bookings/approved"),
-        api.get("/bookings/rejected")
-      ]);
-
-      const pendingData = pendingRes.data?.data || pendingRes.data || [];
-      const approvedData = approvedRes.data?.data || approvedRes.data || [];
-      const rejectedData = rejectedRes.data?.data || rejectedRes.data || [];
-
-      // กรองข้อมูล
-      const filterByRole = (data) => 
-        role === "teacher" 
-          ? data.filter(i => i.user_id === myId || i.teacher_id === myId)
-          : data;
-
-      const myPending = filterByRole(pendingData);
-      const myApproved = filterByRole(approvedData);
-      const myRejected = filterByRole(rejectedData);
-
-      setActiveBookings({
-        pending: myPending,
-        approved: myApproved.filter(i => !isPastDate(i.date))
-      });
-
-      const pastApproved = myApproved.filter(i => isPastDate(i.date));
-      setHistoryBookings([...pastApproved, ...myRejected]);
-
+      if (role === "staff") {
+        // 🚩 ถ้าเป็น Staff ยิงเข้า API รวม 3 ตัวที่นายเขียนไว้ใน Backend
+        const [pRes, aRes, rRes] = await Promise.all([
+          api.get("/bookings/pending"),
+          api.get("/bookings/approved"),
+          api.get("/bookings/rejected")
+        ]);
+        setPendingRequests(pRes.data || []);
+        setApprovedRequests(aRes.data || []);
+        setHistoryRequests(rRes.data || []);
+      } else {
+        // 🚩 ถ้าเป็น Teacher ยิงเข้า My Bookings ปกติ
+        const [activeRes, historyRes] = await Promise.all([
+          api.get("/bookings/my-bookings/active"),
+          api.get("/bookings/my-bookings/history")
+        ]);
+        const active = activeRes.data || [];
+        setPendingRequests(active.filter(i => i.status === 'pending'));
+        setApprovedRequests(active.filter(i => i.status === 'approved'));
+        setHistoryRequests(historyRes.data || []);
+      }
     } catch (error) {
-      console.error("❌ Fetch Error:", error.response?.data || error.message);
+      console.error("❌ Fetch Error:", error.response?.status);
     } finally {
       setIsLoading(false);
     }
-  }, [isPastDate]); // ตอนนี้ isPastDate นิ่งแล้ว ไม่ทำให้เกิด loop
+  }, []);
 
-  // --- 🛠️ Action Handlers (เช็คเรื่อง /api ให้ดี) ---
   const handleUpdateStatus = async (bookingId, status) => {
     try {
-      // ถ้านายใช้ api instance ที่ตั้ง baseURL ไว้แล้ว ไม่ต้องใส่ /api ซ้ำนะครับ
       await api.put(`/bookings/${bookingId}/status`, { status });
       setSelectedBooking(null);
       fetchBookings();
     } catch (error) {
-      alert(error.response?.data?.message || "อัปเดตสถานะไม่สำเร็จ");
+      alert(error.response?.data?.message || "อัปเดตไม่สำเร็จ");
     }
   };
 
-  // ... handleUpdateBooking และ handleCancelBooking แก้ให้ path ตรงเหมือนกัน ...
   const handleUpdateBooking = async (bookingId, updatedData) => {
     try {
-      // 🛑 Check logic: แก้ไขได้เฉพาะรายการที่ยังไม่ถูกอนุมัติ/ปฏิเสธ
-      if (selectedBooking?.status !== 'pending') {
-        alert("สามารถแก้ไขได้เฉพาะรายการที่รออนุมัติเท่านั้น");
-        return;
-      }
-
-      // 🚀 ยิงไปที่ Path แก้ไข (อิงตาม Path /bookings/ ที่นายแก้ล่าสุด)
-      // Path ใน Backend นายควรจะเป็น: PUT /bookings/:id
       await api.put(`/bookings/${bookingId}`, updatedData);
-      
-      setSelectedBooking(null); // ปิด Modal/Overlay หลังแก้เสร็จ
-      fetchBookings();          // Refresh ข้อมูลใหม่ทันที
-      alert("แก้ไขข้อมูลการจองสำเร็จ");
+      setSelectedBooking(null);
+      fetchBookings();
+      alert("แก้ไขสำเร็จ");
     } catch (error) {
-      console.error("❌ Update Error:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดต");
+      alert("แก้ไขไม่สำเร็จ");
     }
   };
 
   const handleCancelBooking = async (bookingId) => {
-    if (!bookingId) return;
-    const confirmMsg = selectedBooking?.status === 'pending' 
-      ? "คุณต้องการยกเลิกคำขอใช่หรือไม่?" 
-      : "คุณต้องการงดใช้ห้องใช่หรือไม่?";
-
-    if (!window.confirm(confirmMsg)) return;
-
+    if (!window.confirm("ยืนยันการยกเลิก?")) return;
     try {
-      // 🚀 ยิงไปที่ Path ยกเลิก (อิงตาม Path /bookings/ ที่นายแก้ล่าสุด)
       await api.put(`/bookings/${bookingId}/cancel`);
       setSelectedBooking(null);
       fetchBookings();
-      alert("ดำเนินการเรียบร้อยแล้ว");
     } catch (error) {
-      alert(error.response?.data?.message || "ไม่สามารถยกเลิกได้");
+      alert("ยกเลิกไม่สำเร็จ");
     }
   };
 
   const getFullName = (req) => {
     if (!req) return "ไม่ระบุชื่อ";
-    const first = req.teacher_name || req.name || req.first_name || "";
-    const last = req.surname || req.last_name || "";
-    return `${first} ${last}`.trim() || "ไม่ระบุชื่อ";
+    return `${req.teacher_name || req.name || ''} ${req.teacher_surname || req.surname || ''}`.trim() || "ไม่ระบุชื่อ";
   };
 
-  useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+  useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
   return {
-    pendingRequests: activeBookings.pending,
-    approvedRequests: activeBookings.approved,
-    historyRequests: historyBookings,
-    isLoading,
-    userRole,
-    selectedBooking,
-    setSelectedBooking,
-    handleUpdateStatus,
-    getFullName,
-    fetchBookings,
-    handleUpdateBooking, // ✅ เพิ่มบรรทัดนี้
-    handleCancelBooking // ✅ เพิ่มบรรทัดนี้
+    pendingRequests, approvedRequests, historyRequests,
+    userRole, selectedBooking, setSelectedBooking, isLoading,
+    handleUpdateStatus, handleUpdateBooking, handleCancelBooking, getFullName
   };
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import api from "../api/axios"; // ใช้ axios instance ที่จัดการ headers ให้เราแล้ว
+import api from "../api/axios";
 
 export const useBookingLogic = (initialId) => {
   const navigate = useNavigate();
@@ -19,12 +19,10 @@ export const useBookingLogic = (initialId) => {
     purpose: "",
   });
 
-  // 1. ดึงรายชื่อห้อง (ใช้ Axios)
   useEffect(() => {
     const fetchRooms = async () => {
       try {
         const res = await api.get("/rooms/");
-        // Axios เก็บข้อมูลใน res.data ทันที ไม่ต้อง await res.json()
         setRooms(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Fetch rooms error:", err);
@@ -36,7 +34,6 @@ export const useBookingLogic = (initialId) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // 🚩 Validation: เช็คเวลาเบื้องต้น
     if (formData.start_time >= formData.end_time) {
       setServerMessage("❌ เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม");
       setIsRoomBusy(true);
@@ -54,7 +51,6 @@ export const useBookingLogic = (initialId) => {
     }
 
     try {
-      // ดึง Role เพื่อเลือก Endpoint
       const decoded = jwtDecode(token);
       const userRole = decoded?.role?.toLowerCase().trim() || "student";
 
@@ -62,24 +58,35 @@ export const useBookingLogic = (initialId) => {
       if (userRole === "teacher") endpoint += "/teacher";
       if (userRole === "staff") endpoint += "/staff";
 
-      // 2. ส่งข้อมูลจอง (ใช้ Axios)
-      // ไม่ต้องส่ง headers มาเอง เพราะ api instance ของเราจัดการเรื่อง Token และ ngrok ให้แล้ว
       const response = await api.post(endpoint, formData);
 
-      // ถ้า Axios รันมาถึงบรรทัดนี้ได้ แปลว่า status code คือ 2xx (Success)
+      // --- ✅ ส่วนที่แก้ไข: จองสำเร็จแล้วทำอะไรต่อ? ---
       setIsRoomBusy(false);
-      setServerMessage(userRole === "staff" ? "✅ จองสำเร็จ" : "✅ ส่งคำขอจองสำเร็จ");
+      setServerMessage(userRole === "staff" ? "✅ จองสำเร็จแล้ว" : "✅ ส่งคำขอจองสำเร็จแล้ว");
       setShowStatus(true);
-      setTimeout(() => navigate("/dashboard"), 1500);
+
+      // 1. ล้างข้อมูลในฟอร์ม (Reset Form)
+      // เราเก็บ room_id เดิมไว้เผื่อจองห้องเดิมแต่เปลี่ยนเวลา แต่ล้างส่วนอื่นทิ้ง
+      setFormData({
+        room_id: formData.room_id, 
+        date: "",
+        start_time: "",
+        end_time: "",
+        purpose: "",
+      });
+
+      // 2. (Optional) ลบข้อความแจ้งเตือนออกอัตโนมัติหลังจาก 4 วินาที
+      setTimeout(() => {
+        setShowStatus(false);
+      }, 4000);
+
+      // ❌ ลบ navigate("/dashboard") ออก เพื่อให้อยู่หน้าเดิม
+      // -------------------------------------------
 
     } catch (error) {
-      // Axios จะโยน error มาที่นี่ถ้า status code ไม่ใช่ 2xx
       setIsRoomBusy(true);
-      
-      // ดึง message จาก Backend
       const errorMessage = error.response?.data?.message || "ห้องไม่ว่างในช่วงเวลานี้";
       setServerMessage(error.response ? errorMessage : "❌ เกิดข้อผิดพลาดในการส่งข้อมูล");
-      
       setShowStatus(true);
     } finally {
       setIsLoading(false);
