@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, Plus, Edit3, Trash2, QrCode, Save, X, Monitor, Mic, Computer } from "lucide-react";
+import { ChevronLeft, Plus, Edit3, Trash2, Save, X, Monitor, Computer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRooms } from "../hooks/useRooms";
 import { jwtDecode } from "jwt-decode";
@@ -9,12 +9,11 @@ import RoomCard from "../components/rooms/RoomCard";
 
 const Rooms = () => {
   const navigate = useNavigate();
-  const { rooms, isLoading, addRoom, updateRoom, deleteRoom, getRoomQRCode } = useRooms();
+  const { rooms, isLoading, addRoom, updateRoom, deleteRoom } = useRooms();
   
   const [userRole, setUserRole] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
-  const [qrCodeUrl, setQrCodeUrl] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -31,12 +30,6 @@ const Rooms = () => {
   const openModal = (room = null) => {
     setEditingRoom(room);
     setIsModalOpen(true);
-  };
-
-  const handleShowQR = async (roomId) => {
-    setQrCodeUrl(null);
-    const qr = await getRoomQRCode(roomId);
-    if (qr) setQrCodeUrl({ id: roomId, image: qr });
   };
 
   const handleDelete = async (roomId) => {
@@ -78,16 +71,23 @@ const Rooms = () => {
           <div className="grid grid-cols-1 gap-8">
             {rooms.map((room) => (
               <div key={room.room_id} className="relative group">
+                {/* ส่ง room data เข้าไป Logic การแสดงผลสีเทาจะอยู่ใน RoomCard */}
                 <RoomCard room={room} />
+                
                 {userRole === "staff" && (
                   <div className="absolute top-6 right-6 flex gap-3 z-10">
-                    <button onClick={() => handleShowQR(room.room_id)} className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-blue-600 hover:scale-110 transition-all border border-gray-100" title="QR Code">
-                      <QrCode size={24} />
-                    </button>
-                    <button onClick={() => openModal(room)} className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-amber-500 hover:scale-110 transition-all border border-gray-100" title="Edit">
+                    <button 
+                      onClick={() => openModal(room)} 
+                      className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-amber-500 hover:scale-110 transition-all border border-gray-100" 
+                      title="Edit"
+                    >
                       <Edit3 size={24} />
                     </button>
-                    <button onClick={() => handleDelete(room.room_id)} className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-red-500 hover:scale-110 transition-all border border-gray-100" title="Delete">
+                    <button 
+                      onClick={() => handleDelete(room.room_id)} 
+                      className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-red-500 hover:scale-110 transition-all border border-gray-100" 
+                      title="Delete"
+                    >
                       <Trash2 size={24} />
                     </button>
                   </div>
@@ -97,19 +97,6 @@ const Rooms = () => {
           </div>
         )}
       </div>
-
-      {/* QR Code Modal */}
-      {qrCodeUrl && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="bg-white p-10 rounded-[50px] text-center max-w-sm w-full shadow-2xl">
-            <h3 className="text-2xl font-black text-[#2D2D86] mb-6 uppercase tracking-tighter italic">Room {qrCodeUrl.id}</h3>
-            <div className="bg-gray-50 p-6 rounded-[30px] mb-8 inline-block shadow-inner border border-gray-100">
-               <img src={qrCodeUrl.image} alt="QR Code" className="mx-auto w-64 h-64 object-contain" />
-            </div>
-            <Button onClick={() => setQrCodeUrl(null)} className="w-full bg-[#2D2D86] text-white py-4 rounded-2xl font-bold shadow-lg border-none">CLOSE</Button>
-          </div>
-        </div>
-      )}
 
       {/* Room Form Modal (Add/Edit) */}
       {isModalOpen && (
@@ -128,11 +115,11 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     room_id: room?.room_id || "",
     room_type: room?.room_type || "",
-    // Dropdown Location Default
     location: room?.location || "อาคาร 26 คณะวิทยาศาสตร์ ศรีราชา",
     capacity: room?.capacity ?? 0,
     room_characteristics: room?.room_characteristics || "",
-    repair: room?.repair ?? true, 
+    // แก้ไข Logic: เริ่มต้นเป็น false (คือไม่ซ่อม/พร้อมใช้งาน)
+    repair: room?.repair ?? false, 
     equipments: {
       projector: room?.equipments?.projector ?? 0,
       microphone: room?.equipments?.microphone ?? 0,
@@ -158,7 +145,6 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
       }
     };
 
-    // ส่ง 2 parameter (id, data) ตามที่แก้ใน hook
     const result = await onSave(payload.room_id, payload);
     
     if (result.success) {
@@ -181,7 +167,6 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Room ID */}
           <div className="space-y-2">
             <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Room ID (เลขห้อง)</label>
             <input 
@@ -193,7 +178,6 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
             />
           </div>
 
-          {/* Location Dropdown */}
           <div className="space-y-2">
             <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Location (อาคาร)</label>
             <select 
@@ -207,16 +191,6 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Room Type</label>
-            <input 
-              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700" 
-              value={formData.room_type} 
-              onChange={e => setFormData({...formData, room_type: e.target.value})} 
-              placeholder="เช่น ห้องบรรยาย, Lab" 
-            />
-          </div>
-
-          <div className="space-y-2">
             <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Capacity (ความจุ)</label>
             <input 
               type="number" 
@@ -226,32 +200,32 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
             />
           </div>
 
+          {/* สลับ Logic ของ Repair ให้ตรงความหมาย */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Status (สถานะเปิด/ปิด)</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">สถานะห้อง</label>
             <select 
               className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700 cursor-pointer appearance-none" 
               value={formData.repair.toString()} 
               onChange={e => setFormData({...formData, repair: e.target.value === 'true'})}
             >
-              <option value="true">Available (เปิดใช้งาน)</option>
-              <option value="false">Hidden (ปิดใช้งาน)</option>
+              <option value="false">ใช้งานได้ปกติ (Normal)</option>
+              <option value="true">งดใช้งาน (อยู่ระหว่างซ่อม)</option>
             </select>
           </div>
         </div>
 
-        {/* Room Characteristics - Text Field (กรอกอะไรก็ได้) */}
         <div className="space-y-2 mb-6">
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Room Characteristics (รายละเอียดห้อง)</label>
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Room Characteristics</label>
           <textarea 
-            rows="3"
+            rows="2"
             className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700 resize-none" 
             value={formData.room_characteristics} 
             onChange={e => setFormData({...formData, room_characteristics: e.target.value})} 
-            placeholder="ระบุรายละเอียดห้อง เช่น มีห้องน้ำในตัว, ติดกระจกเงา, ฯลฯ"
+            placeholder="รายละเอียดเพิ่มเติมของห้อง..."
           />
         </div>
 
-        {/* Section: Equipments */}
+        {/* Equipments Section */}
         <div className="mb-8 p-6 bg-blue-50/50 rounded-[35px] border-2 border-blue-100">
           <h4 className="font-black text-blue-800 mb-6 flex items-center gap-2 uppercase italic tracking-wider">
             <Monitor size={20}/> Equipments Management

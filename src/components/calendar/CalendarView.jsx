@@ -4,18 +4,28 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId }) => {
+// 🚩 1. รับ prop 'currentUserRole' เพิ่มเข้ามา
+const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId, currentUserRole }) => {
+  
   const renderEventContent = (eventInfo) => {
     const props = eventInfo.event.extendedProps;
     const isSchedule = props.isSchedule;
     const isClosed = props.temporarily_closed;
     
-    // 🚩 เช็คว่าเป็นเจ้าของวิชาไหม (ดูจาก teacher_id ที่เราเก็บไว้ใน props ตอน formatEvents)
-    const isOwner = props.teacher_id === currentUserId;
+    // 🚩 2. เช็คว่าเป็นเจ้าของวิชาไหม (แปลงเป็น String เพื่อความชัวร์)
+    const isOwner = String(props.teacher_id) === String(currentUserId);
 
-    // 🚩 ปรับเงื่อนไขการนูน: ต้องเป็นโหมดงดใช้ห้อง + เป็นตารางเรียน + "เป็นเจ้าของวิชา"
-    const shouldElevate = isCancelMode && isSchedule && isOwner && !isClosed;
-    const shouldRestore = isCancelMode && isSchedule && isOwner && isClosed;
+    // 🚩 3. เช็คว่าเป็น Staff ไหม
+    const isStaff = String(currentUserRole || "").toLowerCase().trim() === "staff";
+
+    // 🚩 4. รวมสิทธิ์: ถ้าเป็นเจ้าของ หรือ เป็น Staff ให้ถือว่ามีสิทธิ์
+    const hasPermission = isOwner || isStaff;
+
+    // 🚩 5. ปรับเงื่อนไขการนูน: ใช้ hasPermission แทน isOwner
+    // - shouldElevate: เพื่อกด "งดใช้ห้อง" (สีแดง)
+    // - shouldRestore: เพื่อกด "ยกเลิกการงด" (สีเขียว)
+    const shouldElevate = isCancelMode && isSchedule && hasPermission && !isClosed;
+    const shouldRestore = isCancelMode && isSchedule && hasPermission && isClosed;
 
     const dotColor = isClosed
       ? "bg-slate-400"
@@ -28,7 +38,7 @@ const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId }) => 
           ${shouldElevate ? "elevated-clean" : ""} 
           ${shouldRestore ? "elevated-restore" : ""}
           ${isClosed ? "is-closed" : ""}
-          ${isCancelMode && isClosed && isOwner ? "already-closed-active" : ""}`}
+          ${isCancelMode && isClosed && hasPermission ? "already-closed-active" : ""}`} // 🚩 แก้ตรงนี้ด้วย
       >
         <span className={`w-2 h-2 rounded-full flex-shrink-0 shadow-sm ${dotColor}`}></span>
         <span className="fc-event-time-bold">{eventInfo.timeText}</span>
@@ -109,7 +119,10 @@ const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId }) => 
         .fc-h-event, .fc-v-event { background: transparent !important; border: none !important; }
         
         ${isCancelMode ? `
-          /* จางตัวที่ไม่เกี่ยวข้องออก */
+          /* จางตัวที่ไม่เกี่ยวข้องออก 
+             Logic: ถ้าไม่มี class elevated-clean หรือ elevated-restore (ซึ่ง Staff จะมีแล้วตอนนี้)
+             ให้จางลงและกดไม่ได้
+          */
           .fc-event:not(:has(.elevated-clean)):not(:has(.elevated-restore)) {
             opacity: 0.15;
             filter: grayscale(1) blur(0.4px);

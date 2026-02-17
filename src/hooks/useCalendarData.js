@@ -4,8 +4,7 @@ import { formatCalendarEvents } from "../utils/calendarHelper.js";
 
 export const useCalendarData = (roomIdFromUrl) => {
   const [rooms, setRooms] = useState([]);
-  // 🚩 1. เริ่มต้นด้วย roomId จาก URL ถ้าไม่มีให้เป็นค่าว่าง (เพื่อดึงทั้งหมด)
-  const [selectedRoom, setSelectedRoom] = useState(roomIdFromUrl || ""); 
+  const [selectedRoom, setSelectedRoom] = useState(roomIdFromUrl || "");
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelMode, setIsCancelMode] = useState(false);
@@ -13,27 +12,21 @@ export const useCalendarData = (roomIdFromUrl) => {
   const fetchRooms = async () => {
     try {
       const res = await api.get("/rooms/");
-      if (res.data?.length > 0) {
-        setRooms(res.data);
-      }
+      if (res.data?.length > 0) setRooms(res.data);
     } catch (err) {
       console.error("Fetch Rooms Error:", err);
     }
-  }; // 2. ดึงข้อมูลตารางเรียนและการจอง (พ่วงจุดสีด้วย formatCalendarEvents)
+  };
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       let bookingUrl, scheduleUrl;
-
       if (selectedRoom && selectedRoom !== "") {
-        // --- กรณีเลือกเฉพาะห้อง ---
         bookingUrl = `/bookings/allBookingSpecific/${selectedRoom}?status=approved`;
         scheduleUrl = `/schedules/${selectedRoom}`;
       } else {
-        // --- 🚩 กรณี Default: ดึงข้อมูล "ทุกห้อง" มารวมกัน ---
-        // (หมายเหตุ: นายต้องมี Endpoint เหล่านี้ใน Backend ที่ส่งข้อมูลทุกห้องออกมา)
-        bookingUrl = `/bookings/allBooking?status=approved`; 
+        bookingUrl = `/bookings/allBooking?status=approved`;
         scheduleUrl = `/schedules/`;
       }
 
@@ -42,69 +35,49 @@ export const useCalendarData = (roomIdFromUrl) => {
         api.get(scheduleUrl).catch(() => ({ data: { schedules: [] } })),
       ]);
 
-      // นำข้อมูลจากการจอง (bookRes) และตารางเรียน (schedRes) มา Format รวมกัน
-      const formatted = formatCalendarEvents(
-        bookRes.data || [],
-        schedRes.data?.schedules || schedRes.data || []
-      );
-      
+      const rawSchedules = schedRes.data?.schedules || schedRes.data || [];
+      const formatted = formatCalendarEvents(bookRes.data || [], rawSchedules);
       setEvents(formatted);
     } catch (err) {
       console.error("Fetch Data Error:", err);
       setEvents([]);
     } finally {
-      setIsLoading(false);
+      setTimeout(() => setIsLoading(false), 300);
     }
-  }, [selectedRoom]); // 3. ฟังก์ชันส่งคำสั่งงดใช้ห้อง (Cancel Schedule)
+  }, [selectedRoom]);
 
-  const handleCancelSchedule = async (id) => {
-  setIsLoading(true);
-  try {
-    const payload = { temporarily_closed: true };
-    await api.patch(`/schedules/${id}/status`, payload);
-    
-    await fetchData();
-    return true;
-  } catch (err) {
-    // 🚩 เช็คว่าถ้า Error เป็น 403 (Forbidden)
-    if (err.response && err.response.status === 403) {
-      alert("❌ คุณไม่มีสิทธิ์งดใช้ห้องในคาบนี้ (เฉพาะเจ้าของวิชาเท่านั้น)");
-    } else {
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+  // 🚩 แก้ไขฟังก์ชันอัปเดตสถานะให้เข้มงวดขึ้น
+  const updateStatus = async (id, isClosed) => {
+    // เช็คก่อนว่ามี ID ส่งมาไหม
+    if (!id) {
+      console.error("Update Error: Missing schedule ID");
+      return { success: false };
     }
-    console.error("Cancel Schedule Error:", err);
-    return false;
-  } finally {
-    setIsLoading(false);
-  }
-};
 
-const handleRestoreSchedule = async (scheduleId) => {
-  setIsLoading(true);
-  try {
-    await api.patch(`/schedules/${scheduleId}/status`, { temporarily_closed: false });
-    
-    await fetchData();
-    return true;
-  } catch (err) {
-    if (err.response && err.response.status === 403) {
-      alert("❌ คุณไม่มีสิทธิ์เปิดใช้ห้องในคาบนี้ (เฉพาะเจ้าของวิชาเท่านั้น)");
-    } else {
-      alert("ไม่สามารถคืนสถานะได้");
+    try {
+      console.log(`📡 Sending Update: ID=${id}, Status=${isClosed}`);
+      
+      const payload = { temporarily_closed: isClosed };
+      const response = await api.patch(`/schedules/${id}/status`, payload);
+      
+      console.log("✅ API Response:", response.data);
+
+      // สำคัญ: ต้องรอให้ fetchData เสร็จก่อนถึงจะ return
+      await fetchData();
+      return { success: true };
+    } catch (err) {
+      // 🚩 Log ดู Error ที่แท้จริงจาก Backend
+      console.error("❌ API Error Details:", err.response?.data || err.message);
+      
+      const isForbidden = err.response?.status === 403;
+      const message = err.response?.data?.message || "เกิดข้อผิดพลาด";
+      
+      return { success: false, isForbidden, message };
     }
-    return false;
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchRooms(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   return {
     rooms,
@@ -114,8 +87,9 @@ const handleRestoreSchedule = async (scheduleId) => {
     isLoading,
     isCancelMode,
     setIsCancelMode,
-    handleCancelSchedule,
-    handleRestoreSchedule
+    // ใช้สถาปัตยกรรมที่ชัดเจนในการส่งออกฟังก์ชัน
+    handleCancelSchedule: async (id) => await updateStatus(id, true),
+    handleRestoreSchedule: async (id) => await updateStatus(id, false),
+    refreshData: fetchData 
   };
 };
-
