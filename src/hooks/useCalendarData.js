@@ -9,10 +9,18 @@ export const useCalendarData = (roomIdFromUrl) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelMode, setIsCancelMode] = useState(false);
 
+  // ในไฟล์ useCalendarData.js
+
+  // hooks/useCalendarData.js
   const fetchRooms = async () => {
     try {
       const res = await api.get("/rooms/");
-      if (res.data?.length > 0) setRooms(res.data);
+      if (res.data?.length > 0) {
+        // 🚩 เปลี่ยนเงื่อนไข: เอาเฉพาะห้องที่ repair เป็น false หรือไม่ใช่ true
+        const activeRooms = res.data.filter((room) => room.repair !== true);
+
+        setRooms(activeRooms);
+      }
     } catch (err) {
       console.error("Fetch Rooms Error:", err);
     }
@@ -56,10 +64,10 @@ export const useCalendarData = (roomIdFromUrl) => {
 
     try {
       console.log(`📡 Sending Update: ID=${id}, Status=${isClosed}`);
-      
+
       const payload = { temporarily_closed: isClosed };
       const response = await api.patch(`/schedules/${id}/status`, payload);
-      
+
       console.log("✅ API Response:", response.data);
 
       // สำคัญ: ต้องรอให้ fetchData เสร็จก่อนถึงจะ return
@@ -68,16 +76,20 @@ export const useCalendarData = (roomIdFromUrl) => {
     } catch (err) {
       // 🚩 Log ดู Error ที่แท้จริงจาก Backend
       console.error("❌ API Error Details:", err.response?.data || err.message);
-      
+
       const isForbidden = err.response?.status === 403;
       const message = err.response?.data?.message || "เกิดข้อผิดพลาด";
-      
+
       return { success: false, isForbidden, message };
     }
   };
 
-  useEffect(() => { fetchRooms(); }, []);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return {
     rooms,
@@ -90,6 +102,6 @@ export const useCalendarData = (roomIdFromUrl) => {
     // ใช้สถาปัตยกรรมที่ชัดเจนในการส่งออกฟังก์ชัน
     handleCancelSchedule: async (id) => await updateStatus(id, true),
     handleRestoreSchedule: async (id) => await updateStatus(id, false),
-    refreshData: fetchData 
+    refreshData: fetchData,
   };
 };

@@ -4,29 +4,28 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-// 🚩 1. รับ prop 'currentUserRole' เพิ่มเข้ามา
-const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId, currentUserRole }) => {
-  
+const CalendarView = ({
+  events,
+  onEventClick,
+  isCancelMode,
+  currentUserId,
+  currentUserRole,
+}) => {
   const renderEventContent = (eventInfo) => {
     const props = eventInfo.event.extendedProps;
     const isSchedule = props.isSchedule;
     const isClosed = props.temporarily_closed;
-    
-    // 🚩 2. เช็คว่าเป็นเจ้าของวิชาไหม (แปลงเป็น String เพื่อความชัวร์)
+
+    // 🚩 เช็คสิทธิ์ (Owner หรือ Staff)
     const isOwner = String(props.teacher_id) === String(currentUserId);
-
-    // 🚩 3. เช็คว่าเป็น Staff ไหม
     const isStaff = String(currentUserRole || "").toLowerCase().trim() === "staff";
-
-    // 🚩 4. รวมสิทธิ์: ถ้าเป็นเจ้าของ หรือ เป็น Staff ให้ถือว่ามีสิทธิ์
     const hasPermission = isOwner || isStaff;
 
-    // 🚩 5. ปรับเงื่อนไขการนูน: ใช้ hasPermission แทน isOwner
-    // - shouldElevate: เพื่อกด "งดใช้ห้อง" (สีแดง)
-    // - shouldRestore: เพื่อกด "ยกเลิกการงด" (สีเขียว)
+    // 🚩 กำหนดสถานะการแสดงผล "นูน"
     const shouldElevate = isCancelMode && isSchedule && hasPermission && !isClosed;
     const shouldRestore = isCancelMode && isSchedule && hasPermission && isClosed;
 
+    
     const dotColor = isClosed
       ? "bg-slate-400"
       : isSchedule
@@ -34,15 +33,18 @@ const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId, curre
         : "bg-emerald-500 shadow-emerald-200";
 
     return (
-      <div className={`fc-event-inline-wrapper 
+      <div
+        className={`fc-event-inline-wrapper 
           ${shouldElevate ? "elevated-clean" : ""} 
           ${shouldRestore ? "elevated-restore" : ""}
           ${isClosed ? "is-closed" : ""}
-          ${isCancelMode && isClosed && hasPermission ? "already-closed-active" : ""}`} // 🚩 แก้ตรงนี้ด้วย
+          ${isCancelMode && isClosed && hasPermission ? "already-closed-active" : ""}`}
       >
         <span className={`w-2 h-2 rounded-full flex-shrink-0 shadow-sm ${dotColor}`}></span>
         <span className="fc-event-time-bold">{eventInfo.timeText}</span>
-        <span className="fc-event-title-light">{eventInfo.event.title}</span>
+        <span className="fc-event-title-light">
+          {isClosed ? ` ${eventInfo.event.title}` : eventInfo.event.title}
+        </span>
       </div>
     );
   };
@@ -67,26 +69,26 @@ const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId, curre
         .fc-event-time-bold { font-weight: 800; font-size: 0.65rem; white-space: nowrap; color: inherit; }
         .fc-event-title-light { font-size: 0.7rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
 
-        /* สไตล์พื้นฐานของวิชาที่โดนงด */
+        /* 🚩 สไตล์วิชาที่โดนงด (ตัวหนังสือเทา) */
         .is-closed {
-          background-color: #fff1f2 !important;
+          background-color: #f8fafc !important; /* เทา Slate อ่อน */
           border-radius: 8px;
-          opacity: 0.8;
+          opacity: 0.9;
           cursor: pointer;
         }
         
+        .is-closed .fc-event-time-bold,
         .is-closed .fc-event-title-light {
-          color: #ef4444 !important;
-          font-weight: 700;
+          color: #64748b !important; /* เทา Slate-500 อ่านง่ายแต่ดูจางลง */
+          font-weight: 600;
         }
 
-        /* 🚩 วิชาที่งดแล้ว ในโหมดปกติ/โหมดงดใช้ห้อง ให้ยังคลิกได้ (เพื่อเปิด Modal) */
         .already-closed-active {
           opacity: 1 !important;
           filter: none !important;
         }
 
-        /* 🚩 สไตล์นูนแดง (สำหรับกดงดใช้ห้อง) */
+        /* 🚩 สไตล์นูนแดง (งดใช้ห้อง) */
         .elevated-clean {
           background-color: white !important;
           color: #ef4444 !important;
@@ -96,14 +98,21 @@ const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId, curre
           animation: floatRed 2s infinite ease-in-out;
         }
 
-        /* 🚩 สไตล์นูนเขียว (สำหรับกดยกเลิกการงด) */
+        /* 🚩 สไตล์นูนเหลืองแก้ไข (ยกเลิกการงด) */
         .elevated-restore {
-          background-color: white !important;
-          color: #10b981 !important;
-          border: 2px dashed #10b981 !important;
+          background-color: #fefce8 !important; /* พื้นหลังเหลืองนวล */
+          color: #4b5563 !important; /* 🚩 ตัวหนังสือเทาเข้ม (Gray-600) */
+          border: 2px solid #ca8a04 !important; /* 🚩 ขอบเหลืองมัสตาร์ด */
           border-radius: 12px !important;
           z-index: 50 !important;
-          animation: floatGreen 2s infinite ease-in-out;
+          pointer-events: auto !important;
+          animation: floatYellow 2s infinite ease-in-out;
+        }
+
+        /* บังคับสีในโหมด Restore ให้เป็นเทา */
+        .elevated-restore .fc-event-time-bold,
+        .elevated-restore .fc-event-title-light {
+          color: #4b5563 !important;
         }
 
         @keyframes floatRed {
@@ -111,18 +120,20 @@ const CalendarView = ({ events, onEventClick, isCancelMode, currentUserId, curre
           50% { transform: translateY(-8px) scale(1.04); box-shadow: 0 12px 25px rgba(239, 68, 68, 0.3); }
         }
 
-        @keyframes floatGreen {
-          0%, 100% { transform: translateY(-5px) scale(1.02); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2); }
-          50% { transform: translateY(-8px) scale(1.04); box-shadow: 0 12px 25px rgba(16, 185, 129, 0.3); }
+        @keyframes floatYellow {
+          0%, 100% { 
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 8px 20px rgba(202, 138, 4, 0.2); 
+          }
+          50% { 
+            transform: translateY(-8px) scale(1.04); 
+            box-shadow: 0 12px 25px rgba(202, 138, 4, 0.4); 
+          }
         }
 
         .fc-h-event, .fc-v-event { background: transparent !important; border: none !important; }
         
         ${isCancelMode ? `
-          /* จางตัวที่ไม่เกี่ยวข้องออก 
-             Logic: ถ้าไม่มี class elevated-clean หรือ elevated-restore (ซึ่ง Staff จะมีแล้วตอนนี้)
-             ให้จางลงและกดไม่ได้
-          */
           .fc-event:not(:has(.elevated-clean)):not(:has(.elevated-restore)) {
             opacity: 0.15;
             filter: grayscale(1) blur(0.4px);
