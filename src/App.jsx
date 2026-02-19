@@ -9,9 +9,10 @@ import RoomStatus from './pages/RoomStatus';
 import Calendar from './pages/Calendar';
 import RoomDetail from './pages/RoomDetail';
 import BookingRoom from './pages/Booking';
-
-// 🚩 1. Import หน้า RoomResults เข้ามา
 import RoomResults from './pages/RoomResults'; 
+
+// 🚩 เพิ่มหน้า Users เข้ามา
+import Users from './pages/Users'; 
 
 function App() {
   return (
@@ -20,9 +21,10 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/rooms" element={<Rooms />} />
-        
-        {/* 🚩 2. เพิ่ม Route สำหรับหน้าผลการค้นหา */}
         <Route path="/room-results" element={<RoomResults />} />
+
+        {/* 🚩 เพิ่ม Route สำหรับจัดการผู้ใช้ (เฉพาะ Staff) */}
+        <Route path="/users" element={<Users />} />
 
         <Route path="/bookingRoom/:id" element={<BookingRoom />} />
         <Route path="/calendar/" element={<Calendar />} />

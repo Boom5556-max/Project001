@@ -1,15 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios"; // ใช้ Instance กลางที่รวม Token ไว้แล้ว
+import api from "../api/axios";
 
 export const useRoomStatusLogic = (id) => {
   const navigate = useNavigate();
   const [roomData, setRoomData] = useState(null);
+  const [roomDetail, setRoomDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 🚩 1. สร้าง State สำหรับเวลาปัจจุบัน เพื่อใช้ Trigger การ Re-render
+  const [currentTime, setCurrentTime] = useState(new Date());
+
   const fetchRoomStatus = useCallback(async () => {
-    // เช็ค Token เบื้องต้นก่อนยิง
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
@@ -20,38 +23,69 @@ export const useRoomStatusLogic = (id) => {
       setIsLoading(true);
       setError(null);
 
-      // Axios: baseURL ถูกตั้งไว้แล้ว แค่เรียกเส้นที่ต้องการ
-      // Interceptor ใน axios.js จะแนบ Bearer Token และ ngrok header ให้เอง
-      const response = await api.get(`/bookings/${id}`);
+      const [bookingRes, roomRes] = await Promise.all([
+        api.get(`/bookings/${id}`),
+        api.get(`/rooms/${id}`),
+      ]);
 
-      // ข้อมูลพร้อมใช้ใน response.data
-      setRoomData(response.data);
+      setRoomData(bookingRes.data);
+      setRoomDetail(roomRes.data);
     } catch (err) {
-      console.error("Fetch Room Status Error:", err);
-      
-      // Axios จัดการ Error มาให้ใน err.response
-      if (err.response?.status === 404) {
-        setError("ไม่พบข้อมูลห้องเรียนนี้ในระบบ");
-      } else {
-        setError(err.response?.data?.message || "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
-      }
+      console.error("Fetch Error:", err);
+      setError("ไม่สามารถดึงข้อมูลได้");
     } finally {
       setIsLoading(false);
     }
   }, [id, navigate]);
 
+  // 🚩 2. ตั้ง Timer ให้ Update เวลาทุกๆ 30 วินาที หรือ 1 นาที
   useEffect(() => {
     if (id) fetchRoomStatus();
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date()); // บังคับให้ Component รู้ว่าเวลาเปลี่ยนแล้วนะ
+    }, 30000); // 30 วินาทีเช็คทีหนึ่ง
+
+    return () => clearInterval(timer); // Clean up เมื่อออกจากหน้า
   }, [fetchRoomStatus, id]);
 
-  // Logic การเช็คสถานะห้อง (เหมือนเดิม)
-  const isAvailable = roomData?.status_label === "ว่าง";
+  // 🚩 3. คำนวณสถานะ "ว่าง/ไม่ว่าง" เองโดยอิงจากเวลาปัจจุบัน (Client-side Check)
+  const isAvailable = useMemo(() => {
+  if (!roomData?.schedule || roomData.schedule.length === 0) return true;
+
+  const now = currentTime.getTime();
+  const todayStr = new Date().toISOString().split('T')[0]; // ดึงวันที่ "2026-02-19"
+
+  const ongoingBooking = roomData.schedule.find((item) => {
+    // 🚩 ตรวจสอบว่าเวลาที่ส่งมามีวันที่ติดมาด้วยไหม ถ้าไม่มีให้แปะวันที่ปัจจุบัน
+    const startTimeStr = item.start_time.includes('T') ? item.start_time : `${todayStr}T${item.start_time}`;
+    const endTimeStr = item.end_time.includes('T') ? item.end_time : `${todayStr}T${item.end_time}`;
+
+    const start = new Date(startTimeStr).getTime();
+    const end = new Date(endTimeStr).getTime();
+
+    return !isNaN(start) && now >= start && now < end;
+  });
+
+  return !ongoingBooking;
+}, [roomData, currentTime]); // 💡 ใส่ currentTime เพื่อให้คำนวณใหม่ทุกครั้งที่เข็มนาฬิกาเดิน
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    const options = { day: "numeric", month: "long", year: "numeric" };
-    return new Date(dateStr).toLocaleDateString("th-TH", options);
+    return new Date(dateStr).toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   };
 
-  return { roomData, isLoading, error, isAvailable, formatDate, navigate };
+  return {
+    roomData,
+    roomDetail,
+    isLoading,
+    error,
+    isAvailable, // ค่านี้จะเปลี่ยน auto เมื่อถึงเวลา
+    formatDate,
+    navigate,
+  };
 };
