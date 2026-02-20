@@ -135,6 +135,7 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
     const payload = {
       ...formData,
       room_id: formData.room_id.trim(),
+      room_type: formData.room_type.trim(),
       capacity: parseInt(formData.capacity) || 0,
       equipments: {
         ...formData.equipments,
@@ -177,7 +178,15 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
               required 
             />
           </div>
-
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 ml-1">ประเภทห้อง</label>
+            <input 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B2BB1E] outline-none transition-colors font-medium text-[#302782] disabled:opacity-50" 
+              value={formData.room_type} 
+              onChange={e => setFormData({...formData, room_type: e.target.value})} 
+              required 
+            />
+          </div>
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-500 ml-1">อาคาร</label>
             <select 
