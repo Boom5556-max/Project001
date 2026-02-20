@@ -13,23 +13,23 @@ const RoomDetail = () => {
 
   // --- 1. หน้า Loading (คงเดิม) ---
   if (isLoading) return (
-    <div className="h-screen bg-[#2D2D86] flex flex-col items-center justify-center text-white">
+    <div className="h-screen bg-[#302782] flex flex-col items-center justify-center text-[#FFFFFF]">
       <Loader2 className="animate-spin mb-4" size={48} />
-      <p className="text-xl font-medium animate-pulse">กำลังโหลดข้อมูลห้อง {id}...</p>
+      <p className="text-xl font-medium">กำลังโหลดข้อมูลห้อง {id}...</p>
     </div>
   );
 
   // --- 2. หน้า Error หรือไม่พบห้อง (เพิ่มเช็ค error จาก Axios) ---
   if (!room || error) return (
-    <div className="h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-      <h2 className="text-2xl font-bold text-gray-400 mb-4">
+    <div className="h-screen bg-[#FFFFFF] flex flex-col items-center justify-center p-6 text-center font-sans">
+      <h2 className="text-2xl font-bold text-gray-500 mb-4">
         {error || "ไม่พบข้อมูลห้องเรียนนี้"}
       </h2>
       <Button 
         variant="ghost" 
         size="none" 
         onClick={() => navigate(-1)} 
-        className="text-[#2D2D86] underline font-medium bg-transparent"
+        className="text-[#302782] underline font-bold bg-transparent"
       >
         กลับไปหน้าหลัก
       </Button>
@@ -38,7 +38,7 @@ const RoomDetail = () => {
 
   // --- 3. หน้า UI หลัก (ยึดตามดีไซน์เดิมเป๊ะๆ) ---
   return (
-    <div className="h-screen bg-[#2D2D86] flex flex-col overflow-hidden font-sans">
+    <div className="h-screen bg-[#302782] flex flex-col overflow-hidden font-sans">
       <Navbar />
       
       {/* Header Area */}
@@ -47,19 +47,19 @@ const RoomDetail = () => {
           variant="ghost" 
           size="none" 
           onClick={() => navigate(-1)} 
-          className="text-[#B4C424] hover:scale-110 bg-transparent"
+          className="text-[#B2BB1E] bg-transparent"
         >
           <ChevronLeft size={32} />
         </Button>
-        <h1 className="text-[#B4C424] text-5xl font-bold italic tracking-tight">Room detail</h1>
+        <h1 className="text-[#B2BB1E] text-4xl font-bold">รายละเอียดห้อง</h1>
       </div>
 
       {/* Content Area */}
-      <div className="flex-grow bg-white rounded-t-[60px] p-6 relative shadow-2xl overflow-y-auto">
-        <div className="bg-[#F2F2F2] rounded-[40px] p-8 mt-4 flex flex-col items-center min-h-[500px]">
+      <div className="flex-grow bg-[#FFFFFF] rounded-t-[60px] p-6 relative shadow-2xl overflow-y-auto">
+        <div className="bg-gray-50 rounded-[40px] p-8 mt-4 flex flex-col items-center min-h-[500px]">
           
           {/* Room Title Header */}
-          <h2 className="text-[#999999] text-2xl font-bold mb-10 text-center uppercase tracking-wide">
+          <h2 className="text-gray-500 text-2xl font-bold mb-10 text-center">
             {room.name || room.room_name} | {room.id || id}
           </h2>
 
@@ -68,18 +68,18 @@ const RoomDetail = () => {
 
           {/* Facilities Section */}
           <div className="w-full px-2 mb-12">
-            <p className="text-[#B4C424] text-lg font-bold mb-4">สิ่งอำนวยความสะดวกภายในห้อง:</p>
+            <p className="text-[#B2BB1E] text-lg font-bold mb-4">สิ่งอำนวยความสะดวกภายในห้อง:</p>
             <div className="grid grid-cols-1 gap-3">
               {/* เช็คเผื่อกรณี facilities เป็น undefined */}
               {room.facilities && room.facilities.length > 0 ? (
                 room.facilities.map((item, index) => (
                   <div key={index} className="flex items-center gap-2 text-gray-500 font-bold">
-                    <CheckCircle2 size={18} className="text-[#B4C424]" />
+                    <CheckCircle2 size={18} className="text-[#B2BB1E]" />
                     <span>{item}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-400 italic">ไม่มีข้อมูลสิ่งอำนวยความสะดวก</p>
+                <p className="text-gray-400">ไม่มีข้อมูลสิ่งอำนวยความสะดวก</p>
               )}
             </div>
           </div>
@@ -90,7 +90,7 @@ const RoomDetail = () => {
               variant="secondary" 
               size="lg" 
               onClick={() => navigate(`/calendar/${room.id || id}`)} 
-              className="w-full text-xl"
+              className="w-full text-xl font-bold"
             >
               ตรวจสอบตารางการใช้ห้อง
             </Button>
@@ -99,7 +99,7 @@ const RoomDetail = () => {
               variant="primary" 
               size="lg" 
               onClick={() => navigate(`/BookingRoom/${room.id || id}`)} 
-              className="w-full text-xl"
+              className="w-full text-xl font-bold"
             >
               ดำเนินการจองห้องนี้
             </Button>

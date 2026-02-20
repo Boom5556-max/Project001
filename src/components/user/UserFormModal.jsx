@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Save } from "lucide-react";
+import { X, Save, UserCheck } from "lucide-react";
 import Button from "../common/Button.jsx";
 
 const UserFormModal = ({ user, onClose, onSave }) => {
@@ -20,70 +20,125 @@ const UserFormModal = ({ user, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[#2D2D86]/60 backdrop-blur-md p-4 overflow-y-auto">
-      <form onSubmit={handleSubmit} className="bg-white w-full max-w-lg rounded-[45px] p-10 shadow-2xl animate-in zoom-in-95 duration-300">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-black text-[#2D2D86] italic uppercase tracking-tighter">
-            {user ? 'Edit User' : 'New User'}
-          </h2>
-          <button type="button" onClick={onClose} className="p-3 bg-gray-100 rounded-full text-gray-400 hover:rotate-90 transition-all border-none">
-            <X size={24} />
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 overflow-y-auto font-sans">
+      <form 
+        onSubmit={handleSubmit} 
+        className="bg-[#FFFFFF] w-full max-w-lg rounded-[40px] p-10 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)] border border-white my-auto"
+      >
+        {/* Header Section */}
+        <div className="flex justify-between items-start mb-10">
+          <div>
+            <h2 className="text-2xl font-bold text-[#302782] mb-1">
+              {user ? 'แก้ไขข้อมูลผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
+            </h2>
+            <p className="text-sm font-medium text-gray-400">กรุณาระบุข้อมูลรายละเอียดให้ครบถ้วน</p>
+          </div>
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={20} />
           </button>
         </div>
 
-        <div className="space-y-5 mb-10">
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">User ID (รหัสผู้ใช้)</label>
+        {/* Form Fields */}
+        <div className="space-y-6 mb-12">
+          {/* User ID */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-500 ml-1">รหัสประจำตัว (User ID)</label>
             <input 
               disabled={!!user}
-              className="w-full p-4 bg-gray-50 rounded-[20px] border-2 border-transparent focus:border-[#B4C424] outline-none font-bold text-gray-700 transition-all disabled:opacity-50" 
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[18px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all disabled:opacity-50 placeholder:text-gray-300" 
               value={formData.user_id} 
               onChange={e => setFormData({...formData, user_id: e.target.value})} 
-              placeholder="เช่น T001"
+              placeholder="ตัวอย่างเช่น T001 หรือ S001"
               required 
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-1 col-span-1">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Title</label>
-              <select className="w-full p-4 bg-gray-50 rounded-[20px] border-none font-bold text-gray-700 cursor-pointer" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}>
+          {/* Title & Name Group */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-gray-500 ml-1">คำนำหน้า</label>
+              <select 
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[18px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] font-bold text-[#302782] cursor-pointer appearance-none transition-all" 
+                value={formData.title} 
+                onChange={e => setFormData({...formData, title: e.target.value})}
+                required
+              >
                 <option value="">เลือก</option>
                 <option value="นาย">นาย</option>
                 <option value="นาง">นาง</option>
                 <option value="นางสาว">นางสาว</option>
                 <option value="ดร.">ดร.</option>
+                <option value="ผศ.ดร.">ผศ.ดร.</option>
               </select>
             </div>
-            <div className="space-y-1 col-span-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Name</label>
-              <input className="w-full p-4 bg-gray-50 rounded-[20px] border-none font-bold text-gray-700" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <label className="text-sm font-bold text-gray-500 ml-1">ชื่อ</label>
+              <input 
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[18px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all" 
+                value={formData.name} 
+                onChange={e => setFormData({...formData, name: e.target.value})} 
+                required 
+              />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Surname</label>
-            <input className="w-full p-4 bg-gray-50 rounded-[20px] border-none font-bold text-gray-700" value={formData.surname} onChange={e => setFormData({...formData, surname: e.target.value})} required />
+          {/* Surname */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-500 ml-1">นามสกุล</label>
+            <input 
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[18px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all" 
+              value={formData.surname} 
+              onChange={e => setFormData({...formData, surname: e.target.value})} 
+              required 
+            />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Email</label>
-            <input type="email" className="w-full p-4 bg-gray-50 rounded-[20px] border-none font-bold text-gray-700" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
+          {/* Email */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-500 ml-1">อีเมลติดต่อ</label>
+            <input 
+              type="email" 
+              className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[18px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all" 
+              value={formData.email} 
+              onChange={e => setFormData({...formData, email: e.target.value})} 
+              placeholder="example@ku.th"
+              required 
+            />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Role (สิทธิ์)</label>
-            <select className="w-full p-4 bg-gray-50 rounded-[20px] border-none font-bold text-[#2D2D86] appearance-none" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
-              <option value="teacher">Teacher</option>
-              <option value="staff">Staff</option>
-              <option value="student">Student</option>
-            </select>
+          {/* Role selection */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-gray-500 ml-1">สิทธิ์การใช้งานระบบ (Role)</label>
+            <div className="relative">
+              <select 
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-[18px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] font-bold text-[#302782] appearance-none cursor-pointer transition-all" 
+                value={formData.role} 
+                onChange={e => setFormData({...formData, role: e.target.value})}
+              >
+                <option value="teacher">อาจารย์ (Teacher)</option>
+                <option value="staff">เจ้าหน้าที่ (Staff)</option>
+                <option value="student">นิสิต (Student)</option>
+              </select>
+              <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none text-gray-400">
+                <UserCheck size={18} />
+              </div>
+            </div>
           </div>
         </div>
 
-        <Button type="submit" className="w-full bg-[#2D2D86] text-white py-5 rounded-[25px] font-black text-xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all uppercase italic tracking-tighter border-none">
-          <Save className="mr-2 inline" size={24} /> Confirm & Save
-        </Button>
+        {/* Action Button */}
+        <div className="pt-2">
+          <Button 
+            type="submit" 
+            className="w-full bg-[#302782] text-[#FFFFFF] py-5 rounded-[20px] font-bold text-xl shadow-lg shadow-[#302782]/20 hover:bg-opacity-90 transition-all border-none"
+          >
+            <Save className="mr-2 inline" size={24} /> บันทึกข้อมูลผู้ใช้งาน
+          </Button>
+        </div>
       </form>
     </div>
   );

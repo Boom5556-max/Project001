@@ -21,16 +21,16 @@ const CalendarView = ({
     const isStaff = String(currentUserRole || "").toLowerCase().trim() === "staff";
     const hasPermission = isOwner || isStaff;
 
-    // 🚩 กำหนดสถานะการแสดงผล "นูน"
+    // 🚩 กำหนดสถานะการแสดงผลเมื่ออยู่ในโหมดจัดการ
     const shouldElevate = isCancelMode && isSchedule && hasPermission && !isClosed;
     const shouldRestore = isCancelMode && isSchedule && hasPermission && isClosed;
 
-    
+    // คุมโทนจุดสีด้านหน้าให้มีแค่ น้ำเงิน, เขียว, และเทา
     const dotColor = isClosed
-      ? "bg-slate-400"
+      ? "bg-gray-400"
       : isSchedule
-        ? "bg-indigo-500 shadow-indigo-200"
-        : "bg-emerald-500 shadow-emerald-200";
+        ? "bg-[#302782]"
+        : "bg-[#B2BB1E]";
 
     return (
       <div
@@ -40,17 +40,17 @@ const CalendarView = ({
           ${isClosed ? "is-closed" : ""}
           ${isCancelMode && isClosed && hasPermission ? "already-closed-active" : ""}`}
       >
-        <span className={`w-2 h-2 rounded-full flex-shrink-0 shadow-sm ${dotColor}`}></span>
+        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dotColor}`}></span>
         <span className="fc-event-time-bold">{eventInfo.timeText}</span>
         <span className="fc-event-title-light">
-          {isClosed ? ` ${eventInfo.event.title}` : eventInfo.event.title}
+          {isClosed ? `(งด) ${eventInfo.event.title}` : eventInfo.event.title}
         </span>
       </div>
     );
   };
 
   return (
-    <div className="flex-grow bg-white border border-gray-100 rounded-3xl p-3 shadow-inner overflow-hidden relative">
+    <div className="flex-grow w-full h-full bg-[#FFFFFF] p-4 md:p-6 flex flex-col relative font-sans">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -65,22 +65,40 @@ const CalendarView = ({
       />
 
       <style>{`
-        .fc-event-inline-wrapper { display: flex; align-items: center; gap: 6px; padding: 2px 8px; width: 100%; overflow: hidden; transition: all 0.3s ease; }
-        .fc-event-time-bold { font-weight: 800; font-size: 0.65rem; white-space: nowrap; color: inherit; }
-        .fc-event-title-light { font-size: 0.7rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
-
-        /* 🚩 สไตล์วิชาที่โดนงด (ตัวหนังสือเทา) */
-        .is-closed {
-          background-color: #f8fafc !important; /* เทา Slate อ่อน */
+        /* --- Event Base Styles --- */
+        .fc-event-inline-wrapper { 
+          display: flex; 
+          align-items: center; 
+          gap: 8px; 
+          padding: 4px 10px; 
+          width: 100%; 
+          overflow: hidden; 
           border-radius: 8px;
-          opacity: 0.9;
-          cursor: pointer;
+          transition: all 0.2s ease; 
         }
         
-        .is-closed .fc-event-time-bold,
-        .is-closed .fc-event-title-light {
-          color: #64748b !important; /* เทา Slate-500 อ่านง่ายแต่ดูจางลง */
-          font-weight: 600;
+        /* ขยายขนาด Font ให้ใหญ่อ่านง่ายขึ้น */
+        .fc-event-time-bold { 
+          font-weight: 700; 
+          font-size: 0.8rem; 
+          white-space: nowrap; 
+          color: inherit; 
+        }
+        .fc-event-title-light { 
+          font-size: 0.85rem; 
+          font-weight: 600; 
+          overflow: hidden; 
+          text-overflow: ellipsis; 
+          white-space: nowrap; 
+          color: inherit; 
+        }
+
+        /* --- โหมดปกติ: วิชาที่ถูกงดใช้ห้อง --- */
+        .is-closed {
+          background-color: #F9FAFB !important; 
+          color: #9CA3AF !important; 
+          border: 1px solid #F3F4F6 !important;
+          cursor: pointer;
         }
 
         .already-closed-active {
@@ -88,64 +106,99 @@ const CalendarView = ({
           filter: none !important;
         }
 
-        /* 🚩 สไตล์นูนแดง (งดใช้ห้อง) */
+        /* --- โหมดจัดการ: ไฮไลต์สำหรับงดใช้ห้อง (กรอบน้ำเงิน) --- */
         .elevated-clean {
-          background-color: white !important;
-          color: #ef4444 !important;
-          border: 2px solid #ef4444 !important;
+          background-color: #FFFFFF !important;
+          color: #302782 !important;
+          border: 1.5px solid #302782 !important;
           border-radius: 12px !important;
           z-index: 50 !important;
-          animation: floatRed 2s infinite ease-in-out;
+          box-shadow: 0 4px 15px rgba(48, 39, 130, 0.15) !important;
+          transform: translateY(-2px);
         }
 
-        /* 🚩 สไตล์นูนเหลืองแก้ไข (ยกเลิกการงด) */
+        /* --- โหมดจัดการ: ไฮไลต์สำหรับยกเลิกการงด (กรอบเขียว) --- */
         .elevated-restore {
-          background-color: #fefce8 !important; /* พื้นหลังเหลืองนวล */
-          color: #4b5563 !important; /* 🚩 ตัวหนังสือเทาเข้ม (Gray-600) */
-          border: 2px solid #ca8a04 !important; /* 🚩 ขอบเหลืองมัสตาร์ด */
+          background-color: #FFFFFF !important;
+          color: #302782 !important; 
+          border: 1.5px solid #B2BB1E !important; 
           border-radius: 12px !important;
           z-index: 50 !important;
           pointer-events: auto !important;
-          animation: floatYellow 2s infinite ease-in-out;
+          box-shadow: 0 4px 15px rgba(178, 187, 30, 0.2) !important;
+          transform: translateY(-2px);
         }
 
-        /* บังคับสีในโหมด Restore ให้เป็นเทา */
-        .elevated-restore .fc-event-time-bold,
-        .elevated-restore .fc-event-title-light {
-          color: #4b5563 !important;
+        /* ซ่อนกรอบสีฟ้าพื้นฐานของ FullCalendar */
+        .fc-h-event, .fc-v-event { 
+          background: transparent !important; 
+          border: none !important; 
         }
-
-        @keyframes floatRed {
-          0%, 100% { transform: translateY(-5px) scale(1.02); box-shadow: 0 8px 20px rgba(239, 68, 68, 0.2); }
-          50% { transform: translateY(-8px) scale(1.04); box-shadow: 0 12px 25px rgba(239, 68, 68, 0.3); }
-        }
-
-        @keyframes floatYellow {
-          0%, 100% { 
-            transform: translateY(-5px) scale(1.02); 
-            box-shadow: 0 8px 20px rgba(202, 138, 4, 0.2); 
-          }
-          50% { 
-            transform: translateY(-8px) scale(1.04); 
-            box-shadow: 0 12px 25px rgba(202, 138, 4, 0.4); 
-          }
-        }
-
-        .fc-h-event, .fc-v-event { background: transparent !important; border: none !important; }
         
+        /* เฟดข้อมูลที่ไม่เกี่ยวข้องลงเมื่ออยู่ในโหมดจัดการ (ไม่มี Blur ให้รกตา) */
         ${isCancelMode ? `
           .fc-event:not(:has(.elevated-clean)):not(:has(.elevated-restore)) {
-            opacity: 0.15;
-            filter: grayscale(1) blur(0.4px);
+            opacity: 0.3;
+            filter: grayscale(100%);
             pointer-events: none;
           }
         ` : ""}
 
-        .fc .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 800; color: #2D2D86; }
-        .fc .fc-button-primary { background-color: #2D2D86 !important; border: none !important; border-radius: 10px !important; font-size: 0.75rem !important; padding: 8px 16px !important; }
-        .fc .fc-today-button { background-color: #B4C424 !important; color: #2D2D86 !important; }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: #f1f5f9 !important; }
-        .fc-daygrid-event-dot { display: none !important; }
+        /* --- ปรับโฉม FullCalendar UI (ปุ่มและหัวข้อ) --- */
+        .fc .fc-toolbar-title { 
+          font-size: 1.5rem !important; 
+          font-weight: 700; 
+          color: #302782; 
+        }
+        .fc .fc-button-primary { 
+          background-color: #FFFFFF !important; 
+          color: #6B7280 !important;
+          border: 1px solid #E5E7EB !important; 
+          border-radius: 12px !important; 
+          font-size: 0.9rem !important; 
+          font-weight: 600 !important;
+          padding: 8px 20px !important; 
+          transition: all 0.2s;
+          text-transform: capitalize !important;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        }
+        .fc .fc-button-primary:hover {
+          background-color: #F9FAFB !important;
+          color: #302782 !important;
+          border-color: #302782 !important;
+        }
+        .fc .fc-button-active {
+          background-color: #302782 !important;
+          color: #FFFFFF !important;
+          border-color: #302782 !important;
+        }
+        .fc .fc-today-button { 
+          background-color: #B2BB1E !important; 
+          color: #FFFFFF !important; 
+          border: none !important;
+        }
+        .fc .fc-today-button:disabled {
+          opacity: 0.5;
+        }
+        
+        /* ซอฟต์เส้นขอบตาราง */
+        .fc-theme-standard td, .fc-theme-standard th { 
+          border-color: #F3F4F6 !important; 
+        }
+        .fc-col-header-cell-cushion {
+          color: #6B7280 !important;
+          font-weight: 600 !important;
+          padding: 12px 0 !important;
+        }
+        .fc-daygrid-day-number {
+          color: #374151 !important;
+          font-weight: 600 !important;
+          font-size: 0.9rem !important;
+          padding: 8px !important;
+        }
+        .fc-daygrid-event-dot { 
+          display: none !important; 
+        }
       `}</style>
     </div>
   );

@@ -39,7 +39,6 @@ const UploadModal = ({ isOpen, onClose }) => {
       const result = await response.json();
 
       if (response.ok) {
-        // ✅ ปรับให้ตรงกับ Backend: ใช้ previewData และ errors
         setValidData(result.previewData || []); 
         setInvalidData(result.errors || []);
         setSummary({ total: result.total || 0 });
@@ -94,61 +93,65 @@ const UploadModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#2D2D86]/20 backdrop-blur-sm">
-      <div className={`bg-white w-full ${step === 'preview' ? 'max-w-5xl' : 'max-w-md'} rounded-[32px] p-8 relative shadow-2xl transition-all duration-500`}>
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm font-sans">
+      <div className={`bg-[#FFFFFF] w-full ${step === 'preview' ? 'max-w-6xl' : 'max-w-lg'} rounded-[40px] p-10 relative shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)] transition-all duration-300 border border-white`}>
         
-        <Button variant="ghost" size="icon" onClick={handleClose} className="absolute top-5 right-5 text-gray-400 hover:bg-red-50">
-          <X size={24} />
-        </Button>
+        <button onClick={handleClose} className="absolute top-8 right-8 p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
+          <X size={20} />
+        </button>
 
-        <h2 className="text-2xl font-black text-[#2D2D86] mb-6 italic uppercase tracking-tighter flex items-center gap-2">
-          {step === "preview" ? "Verify Schedule Data" : "Import Schedule"}
-        </h2>
+        <header className="mb-8">
+          <h2 className="text-2xl font-bold text-[#302782] mb-2">
+            {step === "preview" ? "ตรวจสอบข้อมูลตารางเรียน" : "นำเข้าข้อมูลตารางเรียน"}
+          </h2>
+          <p className="text-sm font-medium text-gray-400">
+            {step === "preview" ? "กรุณาตรวจสอบความถูกต้องของข้อมูลก่อนกดยืนยัน" : "อัปโหลดไฟล์ตารางเรียน (.xlsx, .csv) เข้าสู่ระบบ"}
+          </p>
+        </header>
 
         {step === "upload" && (
-          <div className="flex flex-col items-center justify-center border-4 border-dashed border-gray-100 rounded-[32px] p-12 bg-gray-50/30">
+          <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[32px] p-16 bg-gray-50/50">
             <input type="file" id="file-upload" className="hidden" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} disabled={isProcessing} />
-            <label htmlFor="file-upload" className={`cursor-pointer bg-[#2D2D86] text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all ${isProcessing ? "opacity-50" : "hover:scale-105 active:scale-95"}`}>
-              {isProcessing ? <><Loader2 className="animate-spin" /> กำลังตรวจสอบ...</> : <><FilePlus /> เลือกไฟล์ตารางเรียน</>}
+            <label htmlFor="file-upload" className={`cursor-pointer bg-[#302782] text-[#FFFFFF] px-12 py-5 rounded-[20px] font-bold text-lg flex items-center gap-3 shadow-lg shadow-[#302782]/20 transition-all ${isProcessing ? "opacity-50" : "hover:bg-opacity-90 active:transform active:scale-95"}`}>
+              {isProcessing ? <><Loader2 className="animate-spin" /> กำลังตรวจสอบข้อมูล...</> : <><FilePlus size={24} /> เลือกไฟล์จากเครื่อง</>}
             </label>
-            <p className="mt-4 text-xs text-gray-400 italic">ระบบจะเช็คเวลาชนกับตารางสอนและรายการจองก่อนบันทึก</p>
+            <p className="mt-6 text-sm text-gray-400 font-medium text-center max-w-xs">ระบบจะตรวจสอบการชนกันของเวลาและห้องเรียนโดยอัตโนมัติ</p>
           </div>
         )}
 
         {step === "preview" && (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="grid grid-cols-3 gap-4">
-              <StatCard label="ในไฟล์ทั้งหมด" value={summary.total} color="text-gray-600" />
-              <StatCard label="ผ่านเกณฑ์" value={validData.length} color="text-emerald-600" />
-              <StatCard label="พบปัญหา" value={invalidData.length} color="text-red-600" />
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatCard label="ข้อมูลทั้งหมดในไฟล์" value={summary.total} color="text-[#302782]" />
+              <StatCard label="รายการที่ผ่านเกณฑ์" value={validData.length} color="text-[#B2BB1E]" />
+              <StatCard label="พบข้อผิดพลาด" value={invalidData.length} color="text-red-500" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* รายการที่พร้อมนำเข้า */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-emerald-600 flex items-center gap-2 px-2 text-sm uppercase italic">
-                  <CheckCircle2 size={16}/> รายการที่พร้อมบันทึก
+              <div className="flex flex-col gap-4">
+                <h3 className="font-bold text-[#B2BB1E] flex items-center gap-2 px-1 text-base">
+                  <CheckCircle2 size={20}/> รายการที่พร้อมบันทึก
                 </h3>
-                <div className="max-h-[300px] overflow-y-auto border rounded-2xl bg-white shadow-sm overflow-hidden custom-scrollbar">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-emerald-50 text-emerald-700 sticky top-0 font-bold uppercase">
+                <div className="h-[350px] overflow-y-auto border border-gray-100 rounded-3xl bg-[#FFFFFF] shadow-sm custom-scrollbar">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead className="bg-gray-50 text-gray-500 sticky top-0 font-bold border-b border-gray-100">
                       <tr>
-                        <th className="p-3">วิชา</th>
-                        <th className="p-3">ห้อง</th>
-                        <th className="p-3">เวลา (เริ่ม-จบ)</th>
-                        <th className="p-3 text-center">ลบ</th>
+                        <th className="p-4">รายวิชา</th>
+                        <th className="p-4">ห้อง</th>
+                        <th className="p-4">ช่วงเวลา</th>
+                        <th className="p-4 text-center">จัดการ</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {validData.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                          <td className="p-3 font-semibold text-[#2D2D86]">{item.subject_name}</td>
-                          <td className="p-3">{item.room_id}</td>
-                          {/* ✅ แก้ชื่อ field ให้ตรงกับ Backend (start_time / end_time) */}
-                          <td className="p-3 text-gray-500 font-mono">{item.start_time} - {item.end_time}</td>
-                          <td className="p-3 text-center">
-                            <button onClick={() => removeRow(idx)} className="text-gray-300 hover:text-red-500 transition-colors">
-                              <Trash2 size={16} />
+                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="p-4 font-bold text-[#302782]">{item.subject_name}</td>
+                          <td className="p-4 font-medium text-gray-600">{item.room_id}</td>
+                          <td className="p-4 text-gray-500 font-bold">{item.start_time} - {item.end_time}</td>
+                          <td className="p-4 text-center">
+                            <button onClick={() => removeRow(idx)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                              <Trash2 size={18} />
                             </button>
                           </td>
                         </tr>
@@ -159,24 +162,24 @@ const UploadModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* รายการที่มีปัญหา */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-red-500 flex items-center gap-2 px-2 text-sm uppercase italic">
-                  <AlertCircle size={16}/> รายการที่ติดปัญหา (จะถูกข้าม)
+              <div className="flex flex-col gap-4">
+                <h3 className="font-bold text-red-500 flex items-center gap-2 px-1 text-base">
+                  <AlertCircle size={20}/> รายการที่พบปัญหา (จะถูกข้าม)
                 </h3>
-                <div className="max-h-[300px] overflow-y-auto border rounded-2xl bg-gray-50/50 overflow-hidden custom-scrollbar">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-red-50 text-red-700 sticky top-0 font-bold uppercase">
+                <div className="h-[350px] overflow-y-auto border border-gray-100 rounded-3xl bg-gray-50/30 shadow-sm custom-scrollbar">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead className="bg-red-50 text-red-700 sticky top-0 font-bold border-b border-red-100">
                       <tr>
-                        <th className="p-3">แถว</th>
-                        <th className="p-3">สาเหตุ</th>
+                        <th className="p-4">แถว</th>
+                        <th className="p-4">สาเหตุที่พบ</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {invalidData.map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="p-3 font-bold text-gray-400">{item.row}</td>
-                          <td className="p-3 text-red-600 leading-tight">
-                             <span className="font-bold text-[#2D2D86] block mb-1">{item.room}</span>
+                        <tr key={idx} className="bg-[#FFFFFF]/50">
+                          <td className="p-4 font-bold text-gray-400">{item.row}</td>
+                          <td className="p-4 text-red-600 leading-relaxed">
+                             <span className="font-bold text-[#302782] block mb-0.5">{item.room}</span>
                              {item.message}
                           </td>
                         </tr>
@@ -187,25 +190,25 @@ const UploadModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4 border-t border-gray-100">
-              <Button onClick={() => setStep("upload")} variant="outline" className="flex-1 py-4 rounded-xl font-bold uppercase italic border-gray-200">
-                ยกเลิก
+            <div className="flex flex-col md:flex-row gap-4 pt-6 border-t border-gray-100">
+              <Button onClick={() => setStep("upload")} variant="danger" className="flex-1 py-5 rounded-[20px] font-bold text-lg">
+                ยกเลิกและย้อนกลับ
               </Button>
               <Button onClick={handleConfirmImport} disabled={isProcessing || validData.length === 0} 
-                className="flex-[2] bg-[#B4C424] hover:bg-[#a3b120] text-[#2D2D86] py-4 rounded-xl font-black uppercase italic shadow-lg shadow-[#B4C424]/20 flex items-center justify-center gap-2">
-                {isProcessing ? <Loader2 className="animate-spin" /> : <><Send size={18}/> ยืนยันการนำเข้า {validData.length} รายการ</>}
+                className="flex-[2] bg-[#B2BB1E] text-[#FFFFFF] py-5 rounded-[20px] font-bold text-lg shadow-lg shadow-[#B2BB1E]/20 flex items-center justify-center gap-3">
+                {isProcessing ? <><Loader2 className="animate-spin" /> กำลังบันทึกข้อมูล...</> : <><Send size={22}/> ยืนยันนำเข้าข้อมูล {validData.length} รายการ</>}
               </Button>
             </div>
           </div>
         )}
 
         {step === "success" && (
-          <div className="text-center py-12 animate-in zoom-in duration-300">
-            <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 size={48} />
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-[#B2BB1E]/10 text-[#B2BB1E] rounded-full flex items-center justify-center mx-auto mb-8">
+              <CheckCircle2 size={56} strokeWidth={2.5} />
             </div>
-            <h3 className="text-2xl font-black text-[#2D2D86] italic uppercase">บันทึกเรียบร้อย!</h3>
-            <p className="text-gray-500 mt-2">ตารางเรียนถูกนำเข้าสู่ระบบแล้ว</p>
+            <h3 className="text-3xl font-bold text-[#302782] mb-3">บันทึกสำเร็จ!</h3>
+            <p className="text-lg font-medium text-gray-400">ตารางเรียนถูกนำเข้าสู่ระบบเรียบร้อยแล้ว</p>
           </div>
         )}
       </div>
@@ -214,9 +217,9 @@ const UploadModal = ({ isOpen, onClose }) => {
 };
 
 const StatCard = ({ label, value, color }) => (
-  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</p>
-    <p className={`text-2xl font-black ${color}`}>{value}</p>
+  <div className="bg-gray-50 p-6 rounded-[28px] border border-gray-100 text-center shadow-sm">
+    <p className="text-xs font-bold text-gray-400 mb-2">{label}</p>
+    <p className={`text-4xl font-bold ${color}`}>{value}</p>
   </div>
 );
 

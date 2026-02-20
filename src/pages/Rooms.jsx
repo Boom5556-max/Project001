@@ -42,21 +42,21 @@ const Rooms = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
-      <div className="min-h-screen bg-[#F8F9FA] p-6 pb-24">
+      <div className="p-6 pb-24 flex-grow max-w-7xl mx-auto w-full">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="none" onClick={() => navigate(-1)} className="text-[#B4C424] p-0 shadow-none bg-transparent hover:bg-transparent">
+            <Button variant="ghost" size="none" onClick={() => navigate(-1)} className="text-[#B2BB1E] p-0 bg-transparent">
               <ChevronLeft size={28} />
             </Button>
-            <h1 className="text-3xl font-black text-gray-800 italic uppercase tracking-tighter">Rooms</h1>
+            <h1 className="text-3xl font-bold text-[#302782]">ห้องเรียน</h1>
           </div>
           
           {userRole === "staff" && (
-            <Button onClick={() => openModal()} className="bg-[#B4C424] text-white rounded-full px-6 py-3 flex items-center gap-2 font-bold shadow-lg hover:scale-105 transition-all border-none">
-              <Plus size={20} /> เพิ่มห้องใหม่
+            <Button onClick={() => openModal()} className="bg-[#B2BB1E] text-[#FFFFFF] rounded-2xl px-6 py-3 flex items-center gap-2 font-bold shadow-sm">
+              <Plus size={20} /> เพิ่มห้อง
             </Button>
           )}
         </div>
@@ -64,8 +64,8 @@ const Rooms = () => {
         {/* Room Grid */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-10 h-10 border-4 border-[#B4C424] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-400 font-medium italic">กำลังดึงข้อมูลห้อง...</p>
+            <div className="w-10 h-10 border-4 border-[#302782] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 font-bold">กำลังดึงข้อมูลห้อง...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8">
@@ -75,18 +75,18 @@ const Rooms = () => {
                 <RoomCard room={room} />
                 
                 {userRole === "staff" && (
-                  <div className="absolute top-6 right-6 flex gap-3 z-10">
+                  <div className="RoomCard top-6 right-6 flex gap-3 z-10">
                     <button 
                       onClick={() => openModal(room)} 
-                      className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-amber-500 hover:scale-110 transition-all border border-gray-100" 
-                      title="Edit"
+                      className="p-3 bg-[#FFFFFF] shadow-sm rounded-2xl text-gray-500 hover:text-[#302782] transition-colors border border-gray-200" 
+                      title="แก้ไข"
                     >
                       <Edit3 size={24} />
                     </button>
                     <button 
                       onClick={() => handleDelete(room.room_id)} 
-                      className="p-3 bg-white/95 shadow-xl rounded-2xl text-gray-700 hover:text-red-500 hover:scale-110 transition-all border border-gray-100" 
-                      title="Delete"
+                      className="p-3 bg-[#FFFFFF] shadow-sm rounded-2xl text-gray-500 hover:text-red-600 transition-colors border border-gray-200" 
+                      title="ลบ"
                     >
                       <Trash2 size={24} />
                     </button>
@@ -106,7 +106,7 @@ const Rooms = () => {
           onSave={editingRoom ? updateRoom : addRoom}
         />
       )}
-    </>
+    </div>
   );
 };
 
@@ -155,23 +155,23 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 overflow-y-auto">
-      <form onSubmit={handleSubmit} className="bg-white w-full max-w-2xl rounded-[40px] p-8 shadow-2xl my-auto animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <form onSubmit={handleSubmit} className="bg-[#FFFFFF] w-full max-w-2xl rounded-[40px] p-8 shadow-2xl my-auto">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-black text-[#2D2D86] italic uppercase tracking-tighter">
-            {room ? 'Edit Room' : 'Add New Room'}
+          <h2 className="text-2xl font-bold text-[#302782]">
+            {room ? 'แก้ไขข้อมูลห้องเรียน' : 'เพิ่มห้องเรียนใหม่'}
           </h2>
-          <button type="button" onClick={onClose} className="p-3 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 transition-colors border-none">
+          <button type="button" onClick={onClose} className="p-3 bg-gray-50 rounded-full text-gray-400 hover:text-gray-600 transition-colors">
             <X size={24} />
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Room ID (เลขห้อง)</label>
+            <label className="text-xs font-bold text-gray-500 ml-1">รหัสห้องเรียน</label>
             <input 
               disabled={!!room} 
-              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700 disabled:opacity-50" 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B2BB1E] outline-none transition-colors font-medium text-[#302782] disabled:opacity-50" 
               value={formData.room_id} 
               onChange={e => setFormData({...formData, room_id: e.target.value})} 
               required 
@@ -179,9 +179,9 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Location (อาคาร)</label>
+            <label className="text-xs font-bold text-gray-500 ml-1">อาคาร</label>
             <select 
-              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700 cursor-pointer appearance-none"
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B2BB1E] outline-none transition-colors font-medium text-[#302782] cursor-pointer appearance-none"
               value={formData.location}
               onChange={e => setFormData({...formData, location: e.target.value})}
             >
@@ -191,34 +191,33 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Capacity (ความจุ)</label>
+            <label className="text-xs font-bold text-gray-500 ml-1">ความจุ (คน)</label>
             <input 
               type="number" 
-              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700" 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B2BB1E] outline-none transition-colors font-medium text-[#302782]" 
               value={formData.capacity} 
               onChange={e => setFormData({...formData, capacity: e.target.value})} 
             />
           </div>
 
-          {/* สลับ Logic ของ Repair ให้ตรงความหมาย */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">สถานะห้อง</label>
+            <label className="text-xs font-bold text-gray-500 ml-1">สถานะห้อง</label>
             <select 
-              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700 cursor-pointer appearance-none" 
+              className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B2BB1E] outline-none transition-colors font-medium text-[#302782] cursor-pointer appearance-none" 
               value={formData.repair.toString()} 
               onChange={e => setFormData({...formData, repair: e.target.value === 'true'})}
             >
-              <option value="false">ใช้งานได้ปกติ (Normal)</option>
+              <option value="false">ใช้งานได้ปกติ</option>
               <option value="true">งดใช้งาน (อยู่ระหว่างซ่อม)</option>
             </select>
           </div>
         </div>
 
         <div className="space-y-2 mb-6">
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Room Characteristics</label>
+          <label className="text-xs font-bold text-gray-500 ml-1">ลักษณะห้องเรียน</label>
           <textarea 
             rows="2"
-            className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B4C424] outline-none transition-all font-bold text-gray-700 resize-none" 
+            className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#B2BB1E] outline-none transition-colors font-medium text-[#302782] resize-none" 
             value={formData.room_characteristics} 
             onChange={e => setFormData({...formData, room_characteristics: e.target.value})} 
             placeholder="รายละเอียดเพิ่มเติมของห้อง..."
@@ -226,24 +225,24 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
         </div>
 
         {/* Equipments Section */}
-        <div className="mb-8 p-6 bg-blue-50/50 rounded-[35px] border-2 border-blue-100">
-          <h4 className="font-black text-blue-800 mb-6 flex items-center gap-2 uppercase italic tracking-wider">
-            <Monitor size={20}/> Equipments Management
+        <div className="mb-8 p-6 bg-gray-50 rounded-[35px] border border-gray-100">
+          <h4 className="font-bold text-[#302782] mb-6 flex items-center gap-2">
+            <Monitor size={20}/> จัดการอุปกรณ์
           </h4>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <EqInput label="Projector" value={formData.equipments.projector} onChange={v => setFormData({...formData, equipments: {...formData.equipments, projector: v}})} />
-            <EqInput label="Mic" value={formData.equipments.microphone} onChange={v => setFormData({...formData, equipments: {...formData.equipments, microphone: v}})} />
-            <EqInput label="Computer" value={formData.equipments.computer} onChange={v => setFormData({...formData, equipments: {...formData.equipments, computer: v}})} />
-            <EqInput label="Whiteboard" value={formData.equipments.whiteboard} onChange={v => setFormData({...formData, equipments: {...formData.equipments, whiteboard: v}})} />
+            <EqInput label="โปรเจกเตอร์" value={formData.equipments.projector} onChange={v => setFormData({...formData, equipments: {...formData.equipments, projector: v}})} />
+            <EqInput label="ไมโครโฟน" value={formData.equipments.microphone} onChange={v => setFormData({...formData, equipments: {...formData.equipments, microphone: v}})} />
+            <EqInput label="คอมพิวเตอร์" value={formData.equipments.computer} onChange={v => setFormData({...formData, equipments: {...formData.equipments, computer: v}})} />
+            <EqInput label="กระดานไวท์บอร์ด" value={formData.equipments.whiteboard} onChange={v => setFormData({...formData, equipments: {...formData.equipments, whiteboard: v}})} />
           </div>
 
-          <div className="space-y-2 border-t border-blue-100 pt-6">
-            <label className="text-xs font-black text-blue-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-               <Computer size={14}/> Type of Computer
+          <div className="space-y-2 border-t border-gray-200 pt-6">
+            <label className="text-xs font-bold text-gray-500 ml-1 flex items-center gap-2">
+               <Computer size={14}/> ประเภทคอมพิวเตอร์
             </label>
             <select 
-              className="w-full p-4 bg-white rounded-2xl border-2 border-blue-100 font-bold text-blue-700 outline-none focus:border-blue-400 transition-all cursor-pointer shadow-sm"
+              className="w-full p-4 bg-[#FFFFFF] rounded-2xl border border-gray-200 font-medium text-[#302782] outline-none focus:border-[#B2BB1E] transition-colors cursor-pointer shadow-sm appearance-none"
               value={formData.equipments.type_of_computer}
               onChange={e => setFormData({...formData, equipments: {...formData.equipments, type_of_computer: e.target.value}})}
             >
@@ -254,8 +253,8 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
           </div>
         </div>
 
-        <Button type="submit" className="w-full bg-[#2D2D86] text-white py-5 rounded-[25px] font-black text-xl shadow-xl hover:scale-[1.02] transition-all uppercase italic tracking-tighter border-none">
-          <Save className="mr-2 inline" size={24} /> Save Room Settings
+        <Button type="submit" className="w-full bg-[#302782] text-[#FFFFFF] py-5 rounded-[25px] font-bold text-lg shadow-sm hover:bg-opacity-90 transition-colors">
+          <Save className="mr-2 inline" size={24} /> บันทึกข้อมูลห้องเรียน
         </Button>
       </form>
     </div>
@@ -264,11 +263,11 @@ const RoomFormModal = ({ room, onClose, onSave }) => {
 
 const EqInput = ({ label, value, onChange }) => (
   <div className="flex flex-col gap-2">
-    <span className="text-[10px] font-black text-blue-400 uppercase text-center tracking-tighter">{label}</span>
+    <span className="text-xs font-bold text-gray-500 text-center">{label}</span>
     <input 
       type="number" 
       min="0"
-      className="w-full p-3 bg-white rounded-2xl border-2 border-blue-100 text-center font-bold text-blue-700 focus:border-blue-400 outline-none transition-all shadow-sm" 
+      className="w-full p-3 bg-[#FFFFFF] rounded-2xl border border-gray-200 text-center font-medium text-[#302782] focus:border-[#B2BB1E] outline-none transition-colors shadow-sm" 
       value={value ?? 0} 
       onChange={e => onChange(parseInt(e.target.value) || 0)} 
     />

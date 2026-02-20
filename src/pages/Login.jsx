@@ -5,7 +5,7 @@ import LoginForm from "../components/auth/LoginForm";
 import Loginpic from "../components/auth/Loginpic.jsx";
 
 const Login = () => {
-  const navigate = useNavigate(); // ✅ สร้าง function navigate
+  const navigate = useNavigate(); 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   
@@ -17,19 +17,19 @@ const Login = () => {
     // เรียกใช้ verifyOTP และรับผลลัพธ์
     const result = await verifyOTP(email, otp);
 
-    // ✅ ถ้าล็อกอินผ่าน ให้ส่งไปหน้า Dashboard ทันที
+    // ถ้าล็อกอินผ่าน ให้ส่งไปหน้า Dashboard ทันที
     if (result && result.success) {
       navigate("/dashboard"); 
     }
   };
 
   return (
-    <div className="min-h-screen flex font-sans bg-gray-50 overflow-hidden">
-      {/* ฝั่งซ้าย: รูปภาพ */}
+    <div className="min-h-screen flex font-sans bg-gray-50 overflow-hidden text-[#302782]">
+      {/* ฝั่งซ้าย: ส่วนแสดงรูปภาพ */}
       <Loginpic />
 
-      {/* ฝั่งขวา: ฟอร์ม */}
-      <div className="w-full lg:w-[45%] bg-white flex flex-col justify-center relative p-8 md:p-16">
+      {/* ฝั่งขวา: ส่วนฟอร์มเข้าสู่ระบบ */}
+      <div className="w-full lg:w-[45%] bg-[#FFFFFF] flex flex-col justify-center relative p-8 md:p-16">
         <LoginForm 
           email={email}
           setEmail={setEmail}

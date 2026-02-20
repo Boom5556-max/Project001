@@ -28,14 +28,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative font-kanit">
+    <div className="min-h-screen bg-[#FFFFFF] flex flex-col relative font-sans">
       <Navbar />
       <div className="p-6 flex-grow">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold border-b-2 border-[#B4C424] inline-block italic">Dashboard</h2>
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
-            Role: {role}
+          <h2 className="text-2xl font-bold border-b-2 border-[#B2BB1E] inline-block text-[#302782]">ภาพรวมระบบ</h2>
+          <span className="text-xs text-gray-500 font-bold bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
+            สิทธิ์ผู้ใช้งาน: {role}
           </span>
         </div>
 
@@ -46,38 +46,38 @@ const Dashboard = () => {
         <Button
           variant="secondary" size="none"
           onClick={() => navigate("/Rooms")}
-          className="w-full p-5 rounded-3xl justify-between group mb-6"
+          className="w-full p-5 rounded-3xl justify-between flex mb-6 border border-gray-100 bg-[#FFFFFF] hover:bg-gray-50"
         >
           <div className="flex items-center gap-4">
-            <div className="bg-[#B4C424] p-3 rounded-2xl text-[#2D2D86]"><LayoutGrid size={24} /></div>
+            <div className="bg-[#B2BB1E] p-3 rounded-2xl text-[#FFFFFF]"><LayoutGrid size={24} /></div>
             <div className="text-left">
-              <p className="font-bold text-lg leading-none">ดูรายการห้องเรียน</p>
-              <p className="text-white/50 text-[16px] mt-1 italic">ตรวจสอบตารางการใช้ห้องทั้งหมด</p>
+              <p className="font-bold text-lg text-[#302782] leading-none">ดูรายการห้องเรียน</p>
+              <p className="text-gray-500 text-sm mt-1">ตรวจสอบตารางการใช้ห้องทั้งหมด</p>
             </div>
           </div>
-          <ArrowRight className="group-hover:translate-x-2 transition-transform text-[#B4C424]" size={28} />
+          <ArrowRight className="text-[#B2BB1E]" size={28} />
         </Button>
 
         {/* 🚩 Smart Search Section สำหรับ Staff & Teacher เท่านั้น */}
         {(role === "staff" || role === "teacher") && (
-          <div className="bg-[#2D2D86] rounded-[40px] p-8 mb-6 shadow-xl shadow-indigo-100 border border-indigo-900/20">
+          <div className="bg-[#302782] rounded-[40px] p-8 mb-6 shadow-xl border border-[#302782]">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-[#B4C424] rounded-xl text-[#2D2D86]">
+              <div className="p-2 bg-[#B2BB1E] rounded-xl text-[#FFFFFF]">
                 <Search size={20} />
               </div>
-              <h3 className="text-xl font-black text-white italic uppercase tracking-wider">จองห้องเรียน </h3>
+              <h3 className="text-xl font-bold text-[#FFFFFF]">จองห้องเรียน</h3>
             </div>
             
             <form onSubmit={handleSmartSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* วันที่ */}
               <div className="space-y-1">
-                <label className="text-[10px] text-indigo-200 ml-2 font-bold uppercase tracking-widest">วันที่เข้าใช้งาน</label>
+                <label className="text-xs text-gray-300 ml-2 font-bold">วันที่เข้าใช้งาน</label>
                 <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400" size={16} />
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
                   <input 
                     required 
                     type="date" 
-                    className="w-full bg-white/10 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white focus:bg-white focus:text-[#2D2D86] outline-none transition-all text-sm font-bold" 
+                    className="w-full bg-[#FFFFFF]/10 border border-[#FFFFFF]/10 rounded-2xl py-3.5 pl-12 pr-4 text-[#FFFFFF] focus:bg-[#FFFFFF] focus:text-[#302782] outline-none transition-none text-sm font-bold" 
                     onChange={e => setSearchQuery({...searchQuery, date: e.target.value})} 
                   />
                 </div>
@@ -85,23 +85,23 @@ const Dashboard = () => {
 
               {/* เวลา */}
               <div className="space-y-1">
-                <label className="text-[10px] text-indigo-200 ml-2 font-bold uppercase tracking-widest">ช่วงเวลา (เริ่ม - สิ้นสุด)</label>
+                <label className="text-xs text-gray-300 ml-2 font-bold">ช่วงเวลา (เริ่ม - สิ้นสุด)</label>
                 <div className="flex gap-2">
                   <div className="relative w-1/2">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400" size={14} />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
                     <input 
                       required 
                       type="time" 
-                      className="w-full bg-white/10 border border-white/10 rounded-2xl py-3.5 pl-10 pr-2 text-white focus:bg-white focus:text-[#2D2D86] outline-none text-sm font-bold" 
+                      className="w-full bg-[#FFFFFF]/10 border border-[#FFFFFF]/10 rounded-2xl py-3.5 pl-10 pr-2 text-[#FFFFFF] focus:bg-[#FFFFFF] focus:text-[#302782] outline-none text-sm font-bold" 
                       onChange={e => setSearchQuery({...searchQuery, start_time: e.target.value})} 
                     />
                   </div>
                   <div className="relative w-1/2">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400" size={14} />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
                     <input 
                       required 
                       type="time" 
-                      className="w-full bg-white/10 border border-white/10 rounded-2xl py-3.5 pl-10 pr-2 text-white focus:bg-white focus:text-[#2D2D86] outline-none text-sm font-bold" 
+                      className="w-full bg-[#FFFFFF]/10 border border-[#FFFFFF]/10 rounded-2xl py-3.5 pl-10 pr-2 text-[#FFFFFF] focus:bg-[#FFFFFF] focus:text-[#302782] outline-none text-sm font-bold" 
                       onChange={e => setSearchQuery({...searchQuery, end_time: e.target.value})} 
                     />
                   </div>
@@ -110,14 +110,14 @@ const Dashboard = () => {
 
               {/* จำนวนนิสิต */}
               <div className="space-y-1">
-                <label className="text-[10px] text-indigo-200 ml-2 font-bold uppercase tracking-widest">จำนวนนิสิต</label>
+                <label className="text-xs text-gray-300 ml-2 font-bold">จำนวนนิสิต</label>
                 <div className="relative">
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400" size={16} />
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
                   <input 
                     required 
                     type="number" 
                     placeholder="เช่น 50" 
-                    className="w-full bg-white/10 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white focus:bg-white focus:text-[#2D2D86] outline-none text-sm font-bold placeholder:text-indigo-300/30" 
+                    className="w-full bg-[#FFFFFF]/10 border border-[#FFFFFF]/10 rounded-2xl py-3.5 pl-12 pr-4 text-[#FFFFFF] focus:bg-[#FFFFFF] focus:text-[#302782] outline-none text-sm font-bold placeholder:text-gray-400" 
                     onChange={e => setSearchQuery({...searchQuery, capacity: e.target.value})} 
                   />
                 </div>
@@ -127,9 +127,9 @@ const Dashboard = () => {
               <div className="flex items-end">
                 <button 
                   type="submit" 
-                  className="w-full bg-[#B4C424] hover:bg-white text-[#2D2D86] font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/20"
+                  className="w-full bg-[#B2BB1E] hover:bg-[#FFFFFF] text-[#302782] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-sm"
                 >
-                  ค้นหาห้องว่าง <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  ค้นหาห้องว่าง <ArrowRight size={18} />
                 </button>
               </div>
             </form>
@@ -138,15 +138,15 @@ const Dashboard = () => {
 
         {/* ระบบจัดการไฟล์สำหรับ Staff */}
         {role === "staff" && (
-          <div onClick={() => setIsModalOpen(true)} className="bg-gray-50 rounded-[32px] p-6 border-2 border-dashed border-gray-200 cursor-pointer hover:border-[#B4C424] transition-all">
+          <div onClick={() => setIsModalOpen(true)} className="bg-gray-50 rounded-[32px] p-6 border-2 border-dashed border-gray-200 cursor-pointer hover:border-[#B2BB1E]">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-[#2D2D86] flex items-center gap-2">
-                  <FilePlus size={20} className="text-[#B4C424]" /> ระบบจัดการไฟล์
+                <h3 className="text-lg font-bold text-[#302782] flex items-center gap-2">
+                  <FilePlus size={20} className="text-[#B2BB1E]" /> ระบบจัดการไฟล์
                 </h3>
-                <p className="text-gray-400 text-xs mt-1">อัปโหลดตารางเรียน (.xlsx, .csv)</p>
+                <p className="text-gray-500 text-xs mt-1">อัปโหลดตารางเรียน (.xlsx, .csv)</p>
               </div>
-              <FilePlus size={32} className="text-[#2D2D86] opacity-20" />
+              <FilePlus size={32} className="text-[#302782] opacity-20" />
             </div>
           </div>
         )}
@@ -154,10 +154,10 @@ const Dashboard = () => {
         {/* Footer Info สำหรับ Student/Teacher */}
         {(role === "student" || role === "teacher") && (
           <div className="p-8 text-center bg-gray-50 rounded-[40px] border border-gray-100 mt-6">
-            <div className="bg-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#B4C424] rotate-3 shadow-sm">
+            <div className="bg-[#FFFFFF] w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#B2BB1E] shadow-sm">
               <CheckCircle2 size={28} />
             </div>
-            <p className="text-[#2D2D86] font-bold">ระบบจองห้องเรียนออนไลน์</p>
+            <p className="text-[#302782] font-bold">ระบบจองห้องเรียนออนไลน์</p>
           </div>
         )}
       </div>
@@ -166,43 +166,43 @@ const Dashboard = () => {
 
       {/* --- Booking Guidelines Footer --- */}
       <footer className="mt-12 mb-8 px-4">
-        <div className="max-w-4xl mx-auto bg-white/50 backdrop-blur-sm rounded-[30px] p-8 border border-white/60 shadow-sm">
-          <div className="flex items-center gap-3 mb-4 text-[#2D2D86]">
-            <div className="p-2 bg-[#B4C424]/20 rounded-xl">
+        <div className="max-w-4xl mx-auto bg-[#FFFFFF] rounded-[30px] p-8 border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-3 mb-4 text-[#302782]">
+            <div className="p-2 bg-gray-50 rounded-xl">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
             </div>
-            <h2 className="text-xl font-black italic uppercase tracking-wide">ระเบียบการให้บริการ</h2>
+            <h2 className="text-xl font-bold">ระเบียบการให้บริการ</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             <div className="space-y-3">
               <div className="flex gap-3 text-sm text-gray-600 font-medium">
-                <span className="flex-none w-6 h-6 bg-[#2D2D86] text-white text-[10px] font-bold rounded-full flex items-center justify-center">01</span>
-                <p>ให้บริการ <span className="text-[#2D2D86] font-bold">จันทร์ – ศุกร์ (08.30 - 16.30 น.)</span></p>
+                <span className="flex-none w-6 h-6 bg-[#302782] text-[#FFFFFF] text-[10px] font-bold rounded-full flex items-center justify-center">01</span>
+                <p>ให้บริการ <span className="text-[#302782] font-bold">จันทร์ – ศุกร์ (08.30 - 16.30 น.)</span></p>
               </div>
               <div className="flex gap-3 text-sm text-gray-600 font-medium">
-                <span className="flex-none w-6 h-6 bg-[#2D2D86] text-white text-[10px] font-bold rounded-full flex items-center justify-center">02</span>
-                <p>ทำรายการล่วงหน้าอย่างน้อย <span className="text-red-500 font-bold underline">3 วันทำการ</span></p>
+                <span className="flex-none w-6 h-6 bg-[#302782] text-[#FFFFFF] text-[10px] font-bold rounded-full flex items-center justify-center">02</span>
+                <p>ทำรายการล่วงหน้าอย่างน้อย <span className="text-[#302782] font-bold underline">3 วันทำการ</span></p>
               </div>
               <div className="flex gap-3 text-sm text-gray-600 font-medium">
-                <span className="flex-none w-6 h-6 bg-[#2D2D86] text-white text-[10px] font-bold rounded-full flex items-center justify-center">03</span>
-                <p>สถานะต้องได้รับ <span className="text-emerald-600 font-bold italic">"อนุมัติ"</span> เท่านั้น</p>
+                <span className="flex-none w-6 h-6 bg-[#302782] text-[#FFFFFF] text-[10px] font-bold rounded-full flex items-center justify-center">03</span>
+                <p>สถานะต้องได้รับ <span className="text-[#B2BB1E] font-bold">"อนุมัติ"</span> เท่านั้น</p>
               </div>
             </div>
 
             <div className="space-y-3 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8">
               <div className="flex gap-3 text-sm text-gray-600 font-medium">
-                <span className="flex-none w-6 h-6 bg-[#B4C424] text-[#2D2D86] text-[10px] font-bold rounded-full flex items-center justify-center">04</span>
+                <span className="flex-none w-6 h-6 bg-[#B2BB1E] text-[#FFFFFF] text-[10px] font-bold rounded-full flex items-center justify-center">04</span>
                 <p>ยกเลิกการจองล่วงหน้าอย่างน้อย 1 วัน</p>
               </div>
-              <div className="flex gap-3 text-sm text-gray-400 italic font-medium">
-                <span className="flex-none w-6 h-6 bg-[#B4C424] text-[#2D2D86] text-[10px] font-bold rounded-full flex items-center justify-center">05</span>
-                <p>สำหรับอาจารย์และเจ้าหน้าที่ คณะวิทย์ฯ ศรีราชา</p>
+              <div className="flex gap-3 text-sm text-gray-500 font-medium">
+                <span className="flex-none w-6 h-6 bg-[#B2BB1E] text-[#FFFFFF] text-[10px] font-bold rounded-full flex items-center justify-center">05</span>
+                <p>สำหรับอาจารย์และเจ้าหน้าที่ คณะวิทยาศาสตร์ ศรีราชา</p>
               </div>
             </div>
           </div>
         </div>
-        <p className="text-center text-gray-400 text-[10px] mt-6 uppercase tracking-widest opacity-50">Faculty of Science at Sriracha - Room Booking System v1.0</p>
+        <p className="text-center text-gray-400 text-xs mt-6 font-medium">คณะวิทยาศาสตร์ ศรีราชา - ระบบจองห้องเรียน v1.0</p>
       </footer>
     </div>
   );

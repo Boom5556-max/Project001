@@ -56,30 +56,30 @@ const Notification = () => {
   };
 
   return (
-    <div className="h-screen bg-[#2D2D86] flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-[#302782] flex flex-col overflow-hidden relative font-sans">
       <Navbar />
 
       {userRole === "teacher" && (
         <div className="flex px-6 pt-4 gap-2">
-          <button onClick={() => setActiveTab("current")} className={`flex-1 py-4 rounded-t-[30px] font-black text-xs transition-all ${activeTab === "current" ? "bg-white text-[#2D2D86]" : "text-white/50"}`}>การจองของฉัน</button>
-          <button onClick={() => setActiveTab("history")} className={`flex-1 py-4 rounded-t-[30px] font-black text-xs transition-all ${activeTab === "history" ? "bg-white text-[#2D2D86]" : "text-white/50"}`}>ประวัติการจอง</button>
+          <button onClick={() => setActiveTab("current")} className={`flex-1 py-4 rounded-t-[30px] font-bold text-sm ${activeTab === "current" ? "bg-[#FFFFFF] text-[#302782]" : "text-[#FFFFFF]/50"}`}>การจองของฉัน</button>
+          <button onClick={() => setActiveTab("history")} className={`flex-1 py-4 rounded-t-[30px] font-bold text-sm ${activeTab === "history" ? "bg-[#FFFFFF] text-[#302782]" : "text-[#FFFFFF]/50"}`}>ประวัติการจอง</button>
         </div>
       )}
 
-      <div className={`flex-grow overflow-y-auto bg-white p-6 shadow-2xl pt-8 pb-24 transition-all duration-500 ${userRole === "staff" ? "rounded-t-[50px] mt-4" : "rounded-tr-[50px]"}`}>
+      <div className={`flex-grow overflow-y-auto bg-[#FFFFFF] p-6 shadow-2xl pt-8 pb-24 ${userRole === "staff" ? "rounded-t-[50px] mt-4" : "rounded-tr-[50px]"}`}>
         {userRole === "staff" ? (
           <div className="space-y-10">
-            <StaffSection title="รออนุมัติ" icon={Clock} data={pendingRequests} color="text-[#B4C424]" getFullName={getFullName} onSelect={setSelectedBooking} variant="pending" />
-            <StaffSection title="อนุมัติแล้ว" icon={CheckCircle} data={approvedRequests} color="text-emerald-500" getFullName={getFullName} onSelect={setSelectedBooking} variant="approved" />
-            <StaffSection title="ไม่อนุมัติ/ยกเลิก" icon={XCircle} data={historyRequests} color="text-red-500" getFullName={getFullName} onSelect={setSelectedBooking} variant="rejected" />
+            <StaffSection title="รออนุมัติ" icon={Clock} data={pendingRequests} color="text-[#302782]" getFullName={getFullName} onSelect={setSelectedBooking} variant="pending" />
+            <StaffSection title="อนุมัติแล้ว" icon={CheckCircle} data={approvedRequests} color="text-[#B2BB1E]" getFullName={getFullName} onSelect={setSelectedBooking} variant="approved" />
+            <StaffSection title="ไม่อนุมัติ/ยกเลิก" icon={XCircle} data={historyRequests} color="text-gray-400" getFullName={getFullName} onSelect={setSelectedBooking} variant="rejected" />
           </div>
         ) : (
           <div>
             {activeTab === "current" ? (
               <>
-                <SectionTitle title="รออนุมัติ" icon={Clock} colorClass="text-[#B4C424]" />
+                <SectionTitle title="รออนุมัติ" icon={Clock} colorClass="text-[#302782]" />
                 {pendingRequests.map(req => <BookingCard key={req.booking_id || req.id} req={req} variant="pending" getFullName={getFullName} onClick={setSelectedBooking} />)}
-                <SectionTitle title="อนุมัติแล้ว" icon={CheckCircle} colorClass="text-emerald-500" />
+                <SectionTitle title="อนุมัติแล้ว" icon={CheckCircle} colorClass="text-[#B2BB1E]" />
                 {approvedRequests.map(req => <BookingCard key={req.booking_id || req.id} req={req} variant="approved" getFullName={getFullName} onClick={setSelectedBooking} />)}
               </>
             ) : (
@@ -95,9 +95,9 @@ const Notification = () => {
       {/* Modal จัดการการจอง */}
       {selectedBooking && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-lg rounded-[40px] p-8 animate-in slide-in-from-bottom duration-300">
+          <div className="bg-[#FFFFFF] w-full max-w-lg rounded-[40px] p-8">
             <div className="flex justify-between items-start mb-6">
-              <h3 className="text-2xl font-black text-[#2D2D86] italic uppercase">
+              <h3 className="text-2xl font-bold text-[#302782]">
                 {isEditing ? "แก้ไขข้อมูลการจอง" : `ห้อง ${selectedBooking.room_id}`}
               </h3>
               <button onClick={handleCloseModal} className="p-2 bg-gray-100 rounded-full text-gray-400"><X size={20}/></button>
@@ -112,8 +112,8 @@ const Notification = () => {
                   <EditField icon={Clock} label="สิ้นสุด" type="time" value={editForm.end_time} onChange={v => setEditForm({...editForm, end_time: v})} />
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Button className="flex-1 bg-[#2D2D86] text-white rounded-2xl" onClick={onSaveEdit}><Save size={18} className="mr-2"/>บันทึกการแก้ไข</Button>
-                  <Button className="bg-red-200 text-white rounded-2xl px-6" onClick={() => setIsEditing(false)}>ยกเลิก</Button>
+                  <Button className="flex-1 bg-[#302782] text-[#FFFFFF] rounded-2xl" onClick={onSaveEdit}><Save size={18} className="mr-2"/>บันทึกการแก้ไข</Button>
+                  <Button className="bg-gray-200 text-gray-600 rounded-2xl px-6" onClick={() => setIsEditing(false)}>ยกเลิก</Button>
                 </div>
               </div>
             ) : (
@@ -148,7 +148,7 @@ const StaffSection = ({ title, icon, data, color, getFullName, onSelect, variant
     <div className="space-y-3">
       {data.length > 0 ? data.map(req => (
         <BookingCard key={req.booking_id || req.id} req={req} variant={variant} getFullName={getFullName} onClick={onSelect} />
-      )) : <p className="text-gray-400 italic text-sm text-center py-2">ไม่มีรายการ</p>}
+      )) : <p className="text-gray-400 text-sm text-center py-2">ไม่มีรายการ</p>}
     </div>
   </section>
 );
@@ -162,8 +162,8 @@ const ActionButtons = ({ userRole, booking, onUpdateStatus, onCancel, onEdit, on
     <div className="flex flex-col gap-3">
       {userRole === "staff" && isPending && (
         <div className="flex gap-2">
-          <Button className="flex-1 bg-emerald-500 text-white rounded-2xl font-bold py-4" onClick={() => onUpdateStatus(bId, "approved")}>อนุมัติ</Button>
-          <Button className="flex-1 bg-red-500 text-white rounded-2xl font-bold py-4" onClick={() => onUpdateStatus(bId, "rejected")}>ไม่อนุมัติ</Button>
+          <Button className="flex-1 bg-[#B2BB1E] text-[#FFFFFF] rounded-2xl font-bold py-4" onClick={() => onUpdateStatus(bId, "approved")}>อนุมัติ</Button>
+          <Button className="flex-1 bg-gray-200 text-gray-600 rounded-2xl font-bold py-4" onClick={() => onUpdateStatus(bId, "rejected")}>ไม่อนุมัติ</Button>
         </div>
       )}
 
@@ -171,24 +171,24 @@ const ActionButtons = ({ userRole, booking, onUpdateStatus, onCancel, onEdit, on
         <>
           {isPending && (
             <div className="flex flex-col gap-2">
-              <Button className="bg-[#B4C424] text-white rounded-2xl font-bold py-4" onClick={onEdit}>
+              <Button className="bg-[#302782] text-[#FFFFFF] rounded-2xl font-bold py-4" onClick={onEdit}>
                 <Edit3 size={18} className="mr-2 inline"/> แก้ไขข้อมูลการจอง
               </Button>
-              <Button className="bg-red-500 text-white rounded-2xl font-bold py-4" onClick={() => onCancel(bId)}>
+              <Button className="bg-gray-200 text-gray-600 rounded-2xl font-bold py-4" onClick={() => onCancel(bId)}>
                 <Trash2 size={18} className="mr-2 inline"/> ยกเลิกคำขอจอง
               </Button>
             </div>
           )}
           
           {isApproved && (
-            <Button className="bg-red-500 text-white rounded-2xl font-bold py-4" onClick={() => onCancel(bId)}>
+            <Button className="bg-gray-200 text-gray-600 rounded-2xl font-bold py-4" onClick={() => onCancel(bId)}>
               <Ban size={18} className="mr-2 inline"/> งดใช้ห้อง 
             </Button>
           )}
         </>
       )}
       
-      <Button variant="ghost" className="text-gray-400 font-bold" onClick={onClose}>ปิดหน้าต่าง</Button>
+      <Button variant="ghost" className="text-gray-400 font-bold hover:bg-gray-100 rounded-2xl py-3" onClick={onClose}>ปิดหน้าต่าง</Button>
     </div>
   );
 };

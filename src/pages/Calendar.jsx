@@ -28,13 +28,13 @@ const Calendar = () => {
     handleRestoreSchedule,
   } = useCalendarData(id);
 
-  // 1. ดึงข้อมูล User จาก LocalStorage (ยึดตามที่ Backend ต้องการ: user_id และ role)
+  // 1. ดึงข้อมูล User จาก LocalStorage
   const userData = useMemo(() => {
     try {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
-        console.log("Raw User Data from Storage:", parsed); // เช็คว่า role มาจริงไหม
+        console.log("Raw User Data from Storage:", parsed);
         return {
           id: parsed?.user_id || parsed?.id,
           role: String(parsed?.role || "")
@@ -61,19 +61,19 @@ const Calendar = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center font-kanit font-black text-[#2D2D86] bg-white">
-        <div className="w-12 h-12 border-4 border-[#2D2D86] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
+      <div className="h-screen flex flex-col items-center justify-center font-sans bg-[#F9FAFB]">
+        <div className="w-16 h-16 border-[5px] border-[#302782]/20 border-t-[#302782] rounded-full animate-spin mb-6"></div>
+        <p className="text-xl font-bold text-[#302782]">กำลังโหลดข้อมูลตาราง...</p>
+        <p className="text-base font-medium text-gray-500 mt-2">กรุณารอสักครู่</p>
       </div>
     );
   }
 
-  // ฟังก์ชันเช็คสิทธิ์ก่อนแสดง Modal (ยึดตาม Logic Backend)
+  // ฟังก์ชันเช็คสิทธิ์ก่อนแสดง Modal
   const checkPermission = (event) => {
     const props = event.extendedProps;
     const isSchedule = props?.isSchedule;
 
-    // แปลงทั้งคู่เป็น String เพื่อป้องกันเรื่อง Data Type (ตัวเลข vs ตัวอักษร)
     const eventTeacherId = String(props?.teacher_id || "");
     const currentUserId = String(userData.id || "");
     const currentUserRole = String(userData.role || "")
@@ -89,13 +89,11 @@ const Calendar = () => {
       return false;
     }
 
-    // เช็คสิทธิ์: ถ้าเป็น staff ให้ True ทันที
     if (currentUserRole === "staff") {
       console.log("Permission: Granted as Staff");
       return true;
     }
 
-    // ถ้าไม่ใช่ staff ต้องเป็นเจ้าของวิชา
     if (eventTeacherId === currentUserId) {
       console.log("Permission: Granted as Owner");
       return true;
@@ -110,12 +108,13 @@ const Calendar = () => {
   };
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden relative font-kanit">
+    <div className="h-screen bg-[#F8F9FA] flex flex-col overflow-hidden relative font-sans">
       <Navbar />
 
-      <div className="p-4 flex-grow flex flex-col overflow-hidden">
-        <div className="flex items-end gap-6 mb-5 bg-slate-50/50 p-4 rounded-3xl border border-slate-100">
-          <div className="w-80">
+      <div className="p-4 md:p-8 flex-grow flex flex-col overflow-hidden max-w-[1600px] mx-auto w-full">
+        {/* Top Controls Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 bg-[#FFFFFF] p-6 rounded-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border border-gray-100 flex-shrink-0">
+          <div className="w-full max-w-sm">
             <RoomSelector
               rooms={rooms}
               selectedRoom={selectedRoom}
@@ -123,52 +122,55 @@ const Calendar = () => {
             />
           </div>
 
-          {/* ปุ่มเปิดโหมดจัดการ (จะแสดงเมื่อเลือกห้องแล้ว) */}
+          {/* ปุ่มเปิดโหมดจัดการ - ปรับขนาดกลับให้เท่าเดิม h-[46px] */}
           {selectedRoom && (
             <button
               onClick={() => setIsCancelMode(!isCancelMode)}
-              className={`flex items-center justify-center gap-2 px-6 h-[46px] rounded-2xl font-black text-xs transition-all duration-300 shadow-md active:scale-95 border-2 ${
+              className={`flex items-center justify-center gap-2 px-6 h-[46px] rounded-2xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${
                 isCancelMode
-                  ? "bg-amber-500 text-white border-amber-500 ring-4 ring-amber-50 shadow-amber-200"
-                  : "bg-white text-slate-500 border-slate-200 hover:border-[#2D2D86] hover:text-[#2D2D86]"
+                  ? "bg-[#B2BB1E] text-[#FFFFFF] shadow-[0_8px_20px_-8px_rgba(178,187,30,0.5)]"
+                  : "bg-[#FFFFFF] text-gray-600 hover:bg-gray-50 border border-gray-200 shadow-sm"
               }`}
             >
-              {/* เปลี่ยนจาก Power เป็น Settings2 หรือ CalendarDays */}
               {isCancelMode ? (
-                <X size={16} strokeWidth={3} />
+                <X size={18} strokeWidth={2.5} />
               ) : (
-                <Settings2 size={16} strokeWidth={3} />
+                <Settings2 size={18} strokeWidth={2.5} />
               )}
 
               <span>
                 {isCancelMode
                   ? "เสร็จสิ้นการแก้ไข"
-                  : "งดใช้ห้อง/ยกเลิกการงดใช้ห้อง"}
+                  : "จัดการสถานะการใช้ห้อง"}
               </span>
             </button>
           )}
         </div>
 
-        <CalendarView
-          events={events}
-          isCancelMode={isCancelMode}
-          currentUserId={userData.id}
-          currentUserRole={userData.role}
-          onEventClick={(info) => {
-            if (isCancelMode) {
-              if (checkPermission(info.event)) {
-                const isClosed = info.event.extendedProps.temporarily_closed;
-                if (isClosed) setShowConfirmRestore(info.event);
-                else setShowConfirmCancel(info.event);
+        {/* Calendar Main View */}
+        <div className="flex-grow bg-[#FFFFFF] rounded-[32px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] overflow-hidden border border-gray-100 flex flex-col min-h-[500px]">
+          <CalendarView
+            events={events}
+            isCancelMode={isCancelMode}
+            currentUserId={userData.id}
+            currentUserRole={userData.role}
+            onEventClick={(info) => {
+              if (isCancelMode) {
+                if (checkPermission(info.event)) {
+                  const isClosed = info.event.extendedProps.temporarily_closed;
+                  if (isClosed) setShowConfirmRestore(info.event);
+                  else setShowConfirmCancel(info.event);
+                }
+                return;
               }
-              return;
-            }
-            setSelectedEvent(info.event);
-            setShowModal(true);
-          }}
-        />
+              setSelectedEvent(info.event);
+              setShowModal(true);
+            }}
+          />
+        </div>
       </div>
 
+      {/* --- Sub Components (Modals) --- */}
       <EventModal
         event={selectedEvent}
         onClose={() => {
@@ -177,15 +179,13 @@ const Calendar = () => {
         }}
       />
 
-      {/* --- Modal ยืนยัน (ส่ง ID ไปที่ Backend ผ่าน handle) --- */}
       {showConfirmCancel && (
         <ActionModal
-          icon={<Power size={40} />}
-          color="red"
+          icon={<Power size={40} strokeWidth={2.5} />}
           title="ยืนยันการงดใช้ห้อง"
           onClose={() => setShowConfirmCancel(null)}
           onConfirm={async () => {
-            const res = await handleCancelSchedule(showConfirmCancel.id); // ส่ง $2 (id) ไป
+            const res = await handleCancelSchedule(showConfirmCancel.id);
             if (res.success) setShowConfirmCancel(null);
             else if (res.isForbidden) alert("คุณไม่มีสิทธิ์ (403)");
           }}
@@ -194,8 +194,7 @@ const Calendar = () => {
 
       {showConfirmRestore && (
         <ActionModal
-          icon={<RotateCcw size={40} />}
-          color="emerald"
+          icon={<RotateCcw size={40} strokeWidth={2.5} />}
           title="ยกเลิกการงดใช้ห้อง"
           onClose={() => setShowConfirmRestore(null)}
           onConfirm={async () => {
@@ -207,20 +206,20 @@ const Calendar = () => {
 
       {/* --- Alert Modal --- */}
       {alertConfig.show && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-[35px] p-8 w-full max-w-sm shadow-2xl text-center border border-slate-50 transform animate-in zoom-in">
-            <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle size={32} strokeWidth={3} />
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-[#FFFFFF] rounded-[32px] p-10 w-full max-w-md shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] text-center border border-white">
+            <div className="w-24 h-24 bg-gray-50 text-[#302782] rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle size={44} strokeWidth={2.5} />
             </div>
-            <h3 className="text-xl font-black text-[#2D2D86] mb-2">
+            <h3 className="text-3xl font-bold text-[#302782] mb-4">
               {alertConfig.title}
             </h3>
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+            <p className="text-gray-500 text-base mb-10 leading-relaxed font-medium">
               {alertConfig.msg}
             </p>
             <button
               onClick={() => setAlertConfig({ ...alertConfig, show: false })}
-              className="w-full py-4 bg-[#2D2D86] text-white rounded-2xl font-black"
+              className="w-full py-5 bg-[#302782] text-[#FFFFFF] rounded-[20px] font-bold text-xl hover:bg-opacity-90 transition-colors shadow-[0_8px_20px_-8px_rgba(48,39,130,0.4)]"
             >
               รับทราบ
             </button>
@@ -232,29 +231,27 @@ const Calendar = () => {
 };
 
 // Sub-component สำหรับ Modal แจ้งเตือน
-const ActionModal = ({ icon, color, title, onClose, onConfirm }) => (
-  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-6 animate-in fade-in">
-    <div className="bg-white rounded-[40px] p-10 w-full max-w-xs shadow-2xl text-center animate-in zoom-in duration-200">
-      <div
-        className={`w-20 h-20 bg-${color}-50 rounded-full flex items-center justify-center mx-auto mb-6 text-${color}-500`}
-      >
+const ActionModal = ({ icon, title, onClose, onConfirm }) => (
+  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-6">
+    <div className="bg-[#FFFFFF] rounded-[32px] p-10 w-full max-w-md shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] text-center border border-white">
+      <div className="w-28 h-28 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-[#302782]">
         {icon}
       </div>
-      <h3 className="text-2xl font-black text-[#2D2D86] mb-8 leading-tight">
+      <h3 className="text-3xl font-bold text-[#302782] mb-10 leading-tight">
         {title}
       </h3>
       <div className="flex gap-4">
         <button
           onClick={onClose}
-          className="flex-1 py-5 bg-gray-100 text-gray-400 rounded-3xl hover:bg-gray-200 transition-all"
+          className="flex-1 py-5 bg-gray-50 text-gray-500 rounded-[20px] hover:bg-gray-100 transition-colors flex items-center justify-center"
         >
-          <X size={35} strokeWidth={3} className="mx-auto" />
+          <X size={32} strokeWidth={2.5} />
         </button>
         <button
           onClick={onConfirm}
-          className={`flex-1 py-5 bg-${color}-500 text-white rounded-3xl shadow-lg shadow-${color}-200 hover:opacity-90 transition-all`}
+          className="flex-1 py-5 bg-[#B2BB1E] text-[#FFFFFF] rounded-[20px] shadow-[0_8px_20px_-8px_rgba(178,187,30,0.5)] hover:bg-opacity-90 transition-colors flex items-center justify-center"
         >
-          <Check size={35} strokeWidth={3} className="mx-auto" />
+          <Check size={32} strokeWidth={2.5} />
         </button>
       </div>
     </div>

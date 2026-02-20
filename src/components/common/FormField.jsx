@@ -1,6 +1,8 @@
+import React from "react";
+
 export const FormField = ({ label, children }) => (
-  <div className="space-y-1">
-    <label className="text-sm font-bold text-gray-700 ml-1 uppercase tracking-wider">
+  <div className="flex flex-col gap-2 font-sans">
+    <label className="text-sm font-bold text-gray-500 ml-1">
       {label}
     </label>
     {children}

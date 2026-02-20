@@ -61,33 +61,33 @@ const RoomStatus = () => {
   if (!roomData) return null;
 
   return (
-    <div className="h-screen bg-[#2D2D86] flex flex-col overflow-hidden font-sans">
+    <div className="h-screen bg-[#302782] flex flex-col overflow-hidden font-sans">
       <Navbar />
 
       {/* Main Container */}
-      <div className="flex-grow bg-white rounded-t-[50px] p-6 overflow-y-auto shadow-2xl border-t-4 border-[#B4C424]">
+      <div className="flex-grow bg-[#FFFFFF] rounded-t-[50px] p-6 overflow-y-auto shadow-2xl border-t-4 border-[#B2BB1E]">
         <div className="max-w-md mx-auto space-y-8">
           {/* Header Section */}
           <header className="flex justify-between items-end mt-2">
-            <div className="animate-in fade-in slide-in-from-left duration-500">
-              <p className="text-gray-400 font-black text-[10px] uppercase tracking-[0.3em] mb-1">
-                {roomDetail?.room_type || "Room Identification"}
+            <div>
+              <p className="text-gray-500 font-bold text-xs mb-1">
+                {roomDetail?.room_type || "ประเภทห้องเรียน"}
               </p>
-              <h2 className="text-[#2D2D86] text-5xl font-black italic tracking-tighter leading-none">
+              <h2 className="text-[#302782] text-5xl font-bold leading-none">
                 {id}
               </h2>
             </div>
-            <div className="text-right animate-in fade-in slide-in-from-right duration-500">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
-                Status Date
+            <div className="text-right">
+              <p className="text-xs font-bold text-gray-500 leading-none mb-1">
+                ข้อมูล ณ วันที่
               </p>
-              <span className="text-xs font-bold text-gray-800 italic">
+              <span className="text-sm font-bold text-gray-800">
                 {formatDate(roomData.date)}
               </span>
             </div>
           </header>
 
-          <hr className="border-gray-50" />
+          <hr className="border-gray-100" />
 
           {/* 🚩 ส่วนที่ 1: การจองปัจจุบัน (Hero Section) */}
           <section className="relative">
@@ -102,8 +102,8 @@ const RoomStatus = () => {
           <section className="space-y-5">
             <div className="flex items-center gap-3 px-2">
               <div className="h-[2px] flex-grow bg-gray-100" />
-              <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em] italic whitespace-nowrap">
-                {isAvailable ? "Today's Schedule" : "Next Sessions"}
+              <h4 className="text-xs font-bold text-gray-400 whitespace-nowrap">
+                {isAvailable ? "ตารางการใช้ห้องวันนี้" : "รายการจองถัดไป"}
               </h4>
               <div className="h-[2px] flex-grow bg-gray-100" />
             </div>
@@ -130,9 +130,9 @@ const RoomStatus = () => {
 
 // แยก Component เล็กๆ เพื่อความอ่านง่าย (Sub-component)
 const EmptyScheduleState = ({ isAvailable }) => (
-  <div className="py-12 text-center bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-100 transition-all hover:bg-gray-100/50">
-    <p className="text-gray-300 font-black italic uppercase text-[10px] tracking-widest">
-      {isAvailable ? "No bookings today" : "No upcoming sessions"}
+  <div className="py-12 text-center bg-gray-50 rounded-[40px] border-2 border-dashed border-gray-200">
+    <p className="text-gray-500 font-bold text-sm">
+      {isAvailable ? "ไม่มีรายการจองในวันนี้" : "ไม่มีรายการจองถัดไป"}
     </p>
   </div>
 );

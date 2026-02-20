@@ -6,156 +6,157 @@ import {
   Clock,
   Users,
   FileText,
+  ChevronLeft
 } from "lucide-react";
+import Button from "../common/Button.jsx";
 
-// 1. หน้า Loading (Bold & Italic Style)
+// 1. หน้า Loading (Professional & Clean)
 export const LoadingState = () => (
-  <div className="h-screen flex flex-col items-center justify-center bg-[#2D2D86]">
-    <Loader2 className="animate-spin text-[#B4C424] mb-4" size={50} />
-    <p className="text-white font-black italic tracking-[0.2em] animate-pulse uppercase text-sm">
-      Syncing Data...
+  <div className="h-screen flex flex-col items-center justify-center bg-[#F8F9FA] font-sans">
+    <div className="w-16 h-16 border-[5px] border-[#302782]/10 border-t-[#302782] rounded-full animate-spin mb-6"></div>
+    <p className="text-xl font-bold text-[#302782]">
+      กำลังซิงค์ข้อมูล...
     </p>
   </div>
 );
 
-// 2. หน้า Error (Bold & Italic Style)
+// 2. หน้า Error (Formal Style)
 export const ErrorState = ({ message, onBack }) => (
-  <div className="h-screen flex flex-col items-center justify-center p-8 bg-white text-center">
-    <AlertCircle size={64} className="text-red-500 mb-4" />
-    <h2 className="text-3xl font-black text-[#2D2D86] uppercase italic tracking-tighter">
-      Error Occurred
+  <div className="h-screen flex flex-col items-center justify-center p-10 bg-[#FFFFFF] text-center font-sans">
+    <div className="w-24 h-24 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8">
+      <AlertCircle size={48} />
+    </div>
+    <h2 className="text-3xl font-bold text-[#302782] mb-4">
+      เกิดข้อผิดพลาด
     </h2>
-    <p className="text-gray-400 mt-2 mb-8 font-bold italic">{message}</p>
-    <button
+    <p className="text-lg font-medium text-gray-400 mb-10 max-w-sm mx-auto">{message}</p>
+    <Button
       onClick={onBack}
-      className="w-full max-w-xs bg-[#2D2D86] text-[#B4C424] p-4 rounded-2xl font-black uppercase tracking-widest italic shadow-xl active:scale-95 transition-transform"
+      variant="secondary"
+      className="w-full max-w-xs py-5 rounded-[20px] text-lg font-bold"
     >
-      Back to Scanner
-    </button>
+      กลับไปหน้าสแกน
+    </Button>
   </div>
 );
 
-// 🚩 ส่วนที่ 1: Current Session (โชว์คนปัจจุบัน)
+// 🚩 ส่วนที่ 1: Current Session (โชว์สถานะปัจจุบันแบบ High-End)
 export const CurrentBookingCard = ({ item, isAvailable, capacity }) => (
   <div
-    className={`rounded-[40px] p-8 border-2 transition-all shadow-sm ${
+    className={`rounded-[40px] p-10 border transition-all duration-300 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] ${
       !isAvailable
-        ? "bg-red-50 border-red-100 shadow-red-100"
-        : "bg-emerald-50 border-emerald-100 shadow-emerald-100"
+        ? "bg-[#FFFFFF] border-red-100"
+        : "bg-[#FFFFFF] border-gray-100"
     }`}
   >
-    <div className="flex justify-between items-center mb-6">
-      <h3 className="font-black text-[10px] uppercase tracking-widest text-gray-400 italic">
-        Live Status
+    <div className="flex justify-between items-center mb-10">
+      <h3 className="font-bold text-xs text-gray-400">
+        สถานะการใช้งานปัจจุบัน
       </h3>
       <div
-        className={`px-5 py-2 rounded-2xl text-white text-sm font-black italic transition-all shadow-md ${
+        className={`px-6 py-2 rounded-full text-[#FFFFFF] text-sm font-bold transition-all ${
           !isAvailable
-            ? "bg-[#EF4444] -rotate-2 animate-pulse"
-            : "bg-[#B4C424] rotate-2"
+            ? "bg-red-500 shadow-lg shadow-red-200"
+            : "bg-[#B2BB1E] shadow-lg shadow-[#B2BB1E]/20"
         }`}
       >
-        {!isAvailable ? "BUSY NOW" : "AVAILABLE"}
+        {!isAvailable ? "ไม่ว่าง (กำลังใช้งาน)" : "ว่างพร้อมใช้งาน"}
       </div>
     </div>
 
     {!isAvailable && item ? (
-      <div className="space-y-5">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-[#2D2D86]">
-            <Clock size={24} />
+      <div className="space-y-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 bg-gray-50 rounded-[24px] flex items-center justify-center text-[#302782] border border-gray-100">
+            <Clock size={32} />
           </div>
           <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
-              Current Time Slot
+            <p className="text-xs font-bold text-gray-400 mb-1">
+              ช่วงเวลาที่จอง
             </p>
-            <p className="text-xl font-black text-[#2D2D86] italic">
-              {item.start_time} - {item.end_time}
+            <p className="text-2xl font-bold text-[#302782]">
+              {item.start_time} - {item.end_time} น.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/80 p-4 rounded-[25px] border border-white">
-            <p className="text-[9px] font-black text-gray-400 uppercase mb-1">
-              Host Teacher
+        <div className="grid grid-cols-2 gap-5">
+          <div className="bg-gray-50/50 p-5 rounded-[28px] border border-gray-100">
+            <p className="text-[11px] font-bold text-gray-400 mb-2">
+              ผู้รับผิดชอบ
             </p>
             <div className="flex items-center gap-2">
-              <User size={14} className="text-[#B4C424]" />
-              <p className="text-sm font-black text-[#2D2D86] truncate">
+              <User size={18} className="text-[#B2BB1E]" />
+              <p className="text-base font-bold text-[#302782] truncate">
                 {item.full_name}
               </p>
             </div>
           </div>
-          <div className="bg-white/80 p-4 rounded-[25px] border border-white">
-            <p className="text-[9px] font-black text-gray-400 uppercase mb-1">
-              Students
+          <div className="bg-gray-50/50 p-5 rounded-[28px] border border-gray-100">
+            <p className="text-[11px] font-bold text-gray-400 mb-2">
+              จำนวนคน
             </p>
             <div className="flex items-center gap-2">
-              <Users size={14} className="text-[#B4C424]" />
-              {/* ตกแต่งตัวเลขให้ หนา+เอียง */}
-              <p className="text-sm font-black text-[#2D2D86] italic">
-                {item.student_count || capacity || 0} People
+              <Users size={18} className="text-[#B2BB1E]" />
+              <p className="text-base font-bold text-[#302782]">
+                {item.student_count || capacity || 0} คน
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#2D2D86] p-5 rounded-[30px] text-white">
-          <p className="text-[9px] font-black text-white/50 uppercase mb-2 tracking-widest flex items-center gap-2">
-            <FileText size={12} /> Purpose
+        <div className="bg-[#302782] p-6 rounded-[32px] text-[#FFFFFF] shadow-lg shadow-[#302782]/20">
+          <p className="text-[11px] font-bold text-[#FFFFFF]/50 mb-2 flex items-center gap-2">
+            <FileText size={14} /> วัตถุประสงค์การใช้งาน
           </p>
-          <p className="text-sm font-bold italic leading-snug">
-            "{item.purpose || "No specific reason"}"
+          <p className="text-base font-medium leading-relaxed">
+            "{item.purpose || "ไม่ระบุวัตถุประสงค์"}"
           </p>
         </div>
       </div>
     ) : (
-      <div className="text-center py-8">
-        <p className="text-[#B4C424] text-3xl font-black italic mb-1 uppercase tracking-tighter">
-          Ready for use
+      <div className="text-center py-10">
+        <p className="text-[#B2BB1E] text-4xl font-bold mb-3 tracking-tight">
+          ห้องว่างพร้อมใช้งาน
         </p>
-        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] leading-none">
-          Max Capacity: {capacity || "-"} Students
+        <p className="text-sm font-bold text-gray-400">
+          รองรับได้สูงสุด: {capacity || "-"} ที่นั่ง
         </p>
       </div>
     )}
   </div>
 );
 
-// 🚩 รายการตารางเวลาส่วนที่ 2: Timeline (ตกแต่งแบบ Bold & Italic)
+// 🚩 รายการตารางเวลาส่วนที่ 2: Timeline (สะอาดและเป็นมืออาชีพ)
 export const ScheduleItem = ({ item, capacity }) => (
-  <div className="flex items-center gap-4 p-5 bg-gray-50 rounded-[30px] border border-gray-100 transition-all hover:bg-white hover:shadow-lg group">
-    {/* ฝั่งเวลา (หนา+เอียง) */}
-    <div className="flex flex-col items-center min-w-[85px] border-r-2 border-[#B4C424]/30 pr-4">
-      <span className="text-[13px] font-black text-[#2D2D86] italic tracking-tighter">
+  <div className="flex items-center gap-6 p-6 bg-[#FFFFFF] rounded-[32px] border border-gray-100 transition-all hover:border-[#B2BB1E]/30 hover:shadow-xl group">
+    {/* ฝั่งเวลา */}
+    <div className="flex flex-col items-center min-w-[100px] border-r border-gray-100 pr-6">
+      <span className="text-base font-bold text-[#302782]">
         {item.start_time}
       </span>
-      <div className="h-4 w-[2px] bg-[#B4C424] my-1 opacity-40"></div>
-      <span className="text-[11px] font-black text-gray-400 italic tracking-tighter">
+      <span className="text-sm font-bold text-gray-400 mt-1">
         {item.end_time}
       </span>
     </div>
 
     {/* ฝั่งรายละเอียด */}
     <div className="flex-grow overflow-hidden text-left">
-      <p className="text-sm font-black text-[#2D2D86] truncate italic uppercase tracking-tighter mb-1">
-        {item.purpose || "SESSION"}
+      <p className="text-lg font-bold text-[#302782] truncate mb-2">
+        {item.purpose || "รายการจอง"}
       </p>
-      <div className="flex gap-4">
-        <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase">
-          <User size={12} className="text-[#B4C424]" />
-          {/* 🚩 แก้ไขการแสดงผลชื่อ-นามสกุลตรงนี้ */}
-          <span className="truncate max-w-[150px]">
+      <div className="flex flex-wrap gap-4">
+        <span className="flex items-center gap-2 text-xs font-bold text-gray-400">
+          <User size={16} className="text-[#B2BB1E]" />
+          <span className="truncate max-w-[180px]">
             {item.full_name ||
               item.name ||
-              `${item.first_name || "Unknown"} ${item.last_name || ""}`}
+              `${item.first_name || "ไม่ระบุชื่อ"} ${item.last_name || ""}`}
           </span>
         </span>
-        {/* 🚩 ใช้ตัวแปร capacity ตัวเดียวกับข้างบนมาโชว์ที่นี่ */}
-        <span className="flex items-center gap-1.5 text-[10px] font-black text-[#2D2D86] uppercase italic">
-          <Users size={12} className="text-[#B4C424]" />
-          {capacity || 0} People
+        <span className="flex items-center gap-2 text-xs font-bold text-[#302782]">
+          <Users size={16} className="text-[#B2BB1E]" />
+          {capacity || 0} ที่นั่ง
         </span>
       </div>
     </div>
