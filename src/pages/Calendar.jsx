@@ -111,10 +111,11 @@ const Calendar = () => {
     <div className="h-screen bg-[#F8F9FA] flex flex-col overflow-hidden relative font-sans">
       <Navbar />
 
-      <div className="p-4 md:p-8 flex-grow flex flex-col overflow-hidden max-w-[1600px] mx-auto w-full">
-        {/* Top Controls Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 bg-[#FFFFFF] p-6 rounded-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border border-gray-100 flex-shrink-0">
-          <div className="w-full max-w-sm">
+      <div className="p-4 md:p-6 flex-grow flex flex-col overflow-hidden max-w-[1600px] mx-auto w-full">
+        
+        {/* Top Controls: ทำให้กะทัดรัดขึ้น */}
+        <div className="flex flex-row items-center justify-between gap-4 mb-4 bg-[#FFFFFF] p-4 rounded-[20px] shadow-sm border border-gray-100 flex-shrink-0">
+          <div className="w-full max-w-xs">
             <RoomSelector
               rooms={rooms}
               selectedRoom={selectedRoom}
@@ -122,39 +123,30 @@ const Calendar = () => {
             />
           </div>
 
-          {/* ปุ่มเปิดโหมดจัดการ - ปรับขนาดกลับให้เท่าเดิม h-[46px] */}
           {selectedRoom && (
             <button
               onClick={() => setIsCancelMode(!isCancelMode)}
-              className={`flex items-center justify-center gap-2 px-6 h-[46px] rounded-2xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${
+              className={`flex items-center gap-2 px-5 h-[42px] rounded-xl font-bold text-sm transition-all duration-300 ${
                 isCancelMode
-                  ? "bg-[#B2BB1E] text-[#FFFFFF] shadow-[0_8px_20px_-8px_rgba(178,187,30,0.5)]"
-                  : "bg-[#FFFFFF] text-gray-600 hover:bg-gray-50 border border-gray-200 shadow-sm"
+                  ? "bg-[#B2BB1E] text-[#FFFFFF]"
+                  : "bg-[#FFFFFF] text-gray-600 border border-gray-200"
               }`}
             >
-              {isCancelMode ? (
-                <X size={18} strokeWidth={2.5} />
-              ) : (
-                <Settings2 size={18} strokeWidth={2.5} />
-              )}
-
-              <span>
-                {isCancelMode
-                  ? "เสร็จสิ้นการแก้ไข"
-                  : "จัดการสถานะการใช้ห้อง"}
-              </span>
+              {isCancelMode ? <X size={18} /> : <Settings2 size={18} />}
+              <span className="hidden sm:inline">{isCancelMode ? "เสร็จสิ้น" : "จัดการสถานะ"}</span>
             </button>
           )}
         </div>
 
-        {/* Calendar Main View */}
-        <div className="flex-grow bg-[#FFFFFF] rounded-[32px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] overflow-hidden border border-gray-100 flex flex-col min-h-[500px]">
+        {/* 🚩 ส่วนแสดงปฏิทิน: ใช้ flex-grow เพื่อให้ยืดเต็มพื้นที่ที่เหลือของหน้าจอ */}
+        <div className="flex-grow bg-[#FFFFFF] rounded-[24px] shadow-sm overflow-hidden border border-gray-100 flex flex-col">
           <CalendarView
             events={events}
             isCancelMode={isCancelMode}
             currentUserId={userData.id}
             currentUserRole={userData.role}
             onEventClick={(info) => {
+              // ... (Logic Click เดิมของน้อง)
               if (isCancelMode) {
                 if (checkPermission(info.event)) {
                   const isClosed = info.event.extendedProps.temporarily_closed;

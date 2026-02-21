@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react"; // นำเข้าไอคอนลูกศร
 import { useAuth } from "../hooks/useAuth";
 import LoginForm from "../components/auth/LoginForm";
 import Loginpic from "../components/auth/Loginpic.jsx";
@@ -14,10 +15,8 @@ const Login = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     
-    // เรียกใช้ verifyOTP และรับผลลัพธ์
     const result = await verifyOTP(email, otp);
 
-    // ถ้าล็อกอินผ่าน ให้ส่งไปหน้า Dashboard ทันที
     if (result && result.success) {
       navigate("/dashboard"); 
     }
@@ -30,6 +29,19 @@ const Login = () => {
 
       {/* ฝั่งขวา: ส่วนฟอร์มเข้าสู่ระบบ */}
       <div className="w-full lg:w-[45%] bg-[#FFFFFF] flex flex-col justify-center relative p-8 md:p-16">
+        
+        {/* --- ปุ่มย้อนกลับที่เพิ่มเข้ามา --- */}
+        <button 
+          onClick={() => navigate("/")} 
+          className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-[#302782] transition-colors font-medium text-sm group"
+        >
+          <div className="p-2 bg-gray-50 rounded-full group-hover:bg-[#302782]/10 transition-colors">
+            <ArrowLeft size={18} />
+          </div>
+          <span>กลับไปหน้าสแกน</span>
+        </button>
+        {/* --------------------------- */}
+
         <LoginForm 
           email={email}
           setEmail={setEmail}

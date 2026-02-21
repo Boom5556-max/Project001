@@ -8,21 +8,15 @@ export const useRoomStatusLogic = (id) => {
   const [roomDetail, setRoomDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // 🚩 1. สร้าง State สำหรับเวลาปัจจุบัน เพื่อใช้ Trigger การ Re-render
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const fetchRoomStatus = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     try {
       setIsLoading(true);
       setError(null);
 
+      // ยิง API ได้เลยไม่ต้องเช็ค Token 
+      // (Backend ของน้องต้องเปิด Endpoint /bookings/:id และ /rooms/:id ให้เป็น Public ด้วยนะ)
       const [bookingRes, roomRes] = await Promise.all([
         api.get(`/bookings/${id}`),
         api.get(`/rooms/${id}`),
@@ -32,43 +26,45 @@ export const useRoomStatusLogic = (id) => {
       setRoomDetail(roomRes.data);
     } catch (err) {
       console.error("Fetch Error:", err);
-      setError("ไม่สามารถดึงข้อมูลได้");
+      // ถ้า Error 401 หรือ 403 แสดงว่า Backend ยังไม่ยอมให้ Public เข้าถึง
+      if (err.response?.status === 401) {
+        setError("หน้านี้จำเป็นต้องเข้าสู่ระบบก่อนดูข้อมูล");
+      } else {
+        setError("ไม่พบข้อมูลห้อง หรือเกิดข้อผิดพลาดในการดึงข้อมูล");
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [id, navigate]);
+  }, [id]);
 
-  // 🚩 2. ตั้ง Timer ให้ Update เวลาทุกๆ 30 วินาที หรือ 1 นาที
   useEffect(() => {
     if (id) fetchRoomStatus();
 
     const timer = setInterval(() => {
-      setCurrentTime(new Date()); // บังคับให้ Component รู้ว่าเวลาเปลี่ยนแล้วนะ
-    }, 30000); // 30 วินาทีเช็คทีหนึ่ง
+      setCurrentTime(new Date());
+    }, 30000); 
 
-    return () => clearInterval(timer); // Clean up เมื่อออกจากหน้า
+    return () => clearInterval(timer);
   }, [fetchRoomStatus, id]);
 
-  // 🚩 3. คำนวณสถานะ "ว่าง/ไม่ว่าง" เองโดยอิงจากเวลาปัจจุบัน (Client-side Check)
   const isAvailable = useMemo(() => {
-  if (!roomData?.schedule || roomData.schedule.length === 0) return true;
+    if (!roomData?.schedule || roomData.schedule.length === 0) return true;
 
-  const now = currentTime.getTime();
-  const todayStr = new Date().toISOString().split('T')[0]; // ดึงวันที่ "2026-02-19"
+    const now = currentTime.getTime();
+    const todayStr = new Date().toISOString().split('T')[0];
 
-  const ongoingBooking = roomData.schedule.find((item) => {
-    // 🚩 ตรวจสอบว่าเวลาที่ส่งมามีวันที่ติดมาด้วยไหม ถ้าไม่มีให้แปะวันที่ปัจจุบัน
-    const startTimeStr = item.start_time.includes('T') ? item.start_time : `${todayStr}T${item.start_time}`;
-    const endTimeStr = item.end_time.includes('T') ? item.end_time : `${todayStr}T${item.end_time}`;
+    const ongoingBooking = roomData.schedule.find((item) => {
+      const startTimeStr = item.start_time.includes('T') ? item.start_time : `${todayStr}T${item.start_time}`;
+      const endTimeStr = item.end_time.includes('T') ? item.end_time : `${todayStr}T${item.end_time}`;
 
-    const start = new Date(startTimeStr).getTime();
-    const end = new Date(endTimeStr).getTime();
+      const start = new Date(startTimeStr).getTime();
+      const end = new Date(endTimeStr).getTime();
 
-    return !isNaN(start) && now >= start && now < end;
-  });
+      return !isNaN(start) && now >= start && now < end;
+    });
 
-  return !ongoingBooking;
-}, [roomData, currentTime]); // 💡 ใส่ currentTime เพื่อให้คำนวณใหม่ทุกครั้งที่เข็มนาฬิกาเดิน
+    return !ongoingBooking;
+  }, [roomData, currentTime]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -84,7 +80,7 @@ export const useRoomStatusLogic = (id) => {
     roomDetail,
     isLoading,
     error,
-    isAvailable, // ค่านี้จะเปลี่ยน auto เมื่อถึงเวลา
+    isAvailable,
     formatDate,
     navigate,
   };
