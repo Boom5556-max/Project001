@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import axios from "../api/axios";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
 export const useRoomResults = (searchQuery) => {
@@ -13,27 +12,28 @@ export const useRoomResults = (searchQuery) => {
   const [purpose, setPurpose] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🚩 ฟังก์ชันจองห้อง (แยกตาม Role)
+  // 🚩 ฟังก์ชันจองห้อง (ปรับปรุงให้ส่งค่ากลับแทนการใช้ Swal)
   const handleConfirmBooking = async () => {
+    // เช็คค่าว่างเบื้องต้น
     if (!purpose.trim()) {
-      return Swal.fire({ title: "กรุณาระบุวัตถุประสงค์", icon: "warning" });
+      return { success: false, message: "กรุณาระบุวัตถุประสงค์" };
     }
 
     try {
       setIsSubmitting(true);
       
-      // 1. ดึงข้อมูล User/Role จาก localStorage (หรือที่ที่นายเก็บไว้)
       const user = JSON.parse(localStorage.getItem("user")); 
-      const role = user?.role; // 'teacher' หรือ 'staff'
+      const role = user?.role;
 
-      // 2. เลือก Endpoint ให้ตรงกับ Route ที่นายเขียนไว้
       let endpoint = "";
       if (role === 'teacher') {
         endpoint = "/bookings/teacher";
       } else if (role === 'staff') {
         endpoint = "/bookings/staff";
+      } else if (role === 'student') { // เพิ่มเผื่อไว้สำหรับนิสิต
+        endpoint = "/bookings/student";
       } else {
-        throw new Error("คุณไม่มีสิทธิ์ในการจองห้อง (Unauthorized Role)");
+        throw new Error("คุณไม่มีสิทธิ์ในการจองห้อง");
       }
 
       const bookingData = {
@@ -44,20 +44,19 @@ export const useRoomResults = (searchQuery) => {
         purpose: purpose
       };
 
-      // 3. ยิง API พร้อม Token (axios instance ของนายควรจัดการ Header ให้อยู่แล้ว)
+      // ยิง API
       await axios.post(endpoint, bookingData);
 
-      await Swal.fire({
-        title: "จองสำเร็จ!",
-        text: `บันทึกการจองในฐานะ ${role} เรียบร้อยแล้ว`,
-        icon: "success"
-      });
+      // 🚩 ส่งกลับว่าสำเร็จเพื่อให้ Component เปิด Modal Success
+      return { success: true };
 
-      navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.message || "ไม่สามารถจองได้ กรุณาลองใหม่";
-      Swal.fire("เกิดข้อผิดพลาด", msg, "error");
+      // 🚩 ส่งกลับว่าไม่สำเร็จเพื่อให้ Component เปิด Modal Error
+      return { 
+        success: false, 
+        message: err.response?.data?.message || "ไม่สามารถจองได้" 
+      };
     } finally {
       setIsSubmitting(false);
     }

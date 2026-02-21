@@ -151,7 +151,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Footer Info สำหรับ Student/Teacher */}
+        
         {(role === "teacher") && (
           <div className="p-8 text-center bg-gray-50 rounded-[40px] border border-gray-100 mt-6">
             <div className="bg-[#FFFFFF] w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#B2BB1E] shadow-sm">

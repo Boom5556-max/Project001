@@ -145,19 +145,6 @@ const UserFormModal = ({ user, onClose, onSave }) => {
         </div>
       </form>
 
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #302782;
-          border-radius: 10px;
-        }
-      `}</style>
     </div>
   );
 };

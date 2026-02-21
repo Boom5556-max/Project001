@@ -34,7 +34,6 @@ const Calendar = () => {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
-        console.log("Raw User Data from Storage:", parsed);
         return {
           id: parsed?.user_id || parsed?.id,
           role: String(parsed?.role || "")
@@ -90,12 +89,10 @@ const Calendar = () => {
     }
 
     if (currentUserRole === "staff") {
-      console.log("Permission: Granted as Staff");
       return true;
     }
 
     if (eventTeacherId === currentUserId) {
-      console.log("Permission: Granted as Owner");
       return true;
     }
 
