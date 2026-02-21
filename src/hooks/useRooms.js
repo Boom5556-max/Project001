@@ -58,8 +58,6 @@ export const useRooms = () => {
 
   // 4. ลบห้องแบบ Soft Delete (DELETE /rooms/:room_id/delete)
   const deleteRoom = async (roomId) => {
-  if (!window.confirm(`ยืนยันการลบห้อง ${roomId}?`)) return;
-  
   try {
     // 1. เปลี่ยนจาก api.delete เป็น api.patch
     // 2. ใช้ URL ให้ตรงกับที่ตั้งไว้ใน router คือ /rooms/:id/delete
