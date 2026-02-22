@@ -1,5 +1,5 @@
 import React from "react";
-import { Mail, Lock, RefreshCw, Send } from "lucide-react";
+import { Mail, Lock, RefreshCw, Send, AlertCircle } from "lucide-react"; 
 import InputField from "../common/InputField";
 import Button from "../common/Button";
 
@@ -10,7 +10,8 @@ const LoginForm = ({
   setOtp, 
   onSubmit, 
   requestOTP, 
-  authData 
+  authData,
+  errorMsg // รับค่า errorMsg เข้ามา
 }) => {
   const { timer, isSent, isLoading, statusMsg } = authData;
 
@@ -23,9 +24,9 @@ const LoginForm = ({
         </h1>
       </div>
 
-      {/* Message แสดงสถานะ */}
-      <div className={`h-6 mb-4 text-sm font-bold transition-all ${statusMsg ? "opacity-100" : "opacity-0"}`}>
-        <p className={statusMsg.includes("❌") ? "text-red-500" : "text-green-500"}>
+      {/* Message แสดงสถานะตอนส่งอีเมล */}
+      <div className={`h-6 mb-4 text-sm font-bold transition-all ${statusMsg && !errorMsg ? "opacity-100" : "opacity-0"}`}>
+        <p className={statusMsg?.includes("❌") ? "text-red-500" : "text-green-500"}>
           {statusMsg}
         </p>
       </div>
@@ -62,17 +63,27 @@ const LoginForm = ({
         </Button>
 
         {/* ส่วน OTP */}
-        <InputField
-          label="Verification Code"
-          icon={Lock}
-          type="text"
-          required
-          maxLength={6}
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          placeholder="000000"
-          className="text-center text-3xl tracking-[0.3em] font-black text-[#2D2D86]"
-        />
+        <div>
+          <InputField
+            label="Verification Code"
+            icon={Lock}
+            type="text"
+            required
+            maxLength={6}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="000000"
+            className={`text-center text-3xl tracking-[0.3em] font-black transition-colors ${errorMsg ? 'text-red-500' : 'text-[#2D2D86]'}`}
+          />
+          
+          {/* ✨ แก้ไขจุดนี้: เปลี่ยนจาก absolute เป็นการจัด Layout ธรรมดา (มี mt-2 ดันลงมา) เพื่อไม่ให้ทับปุ่ม */}
+          {errorMsg && (
+            <div className="flex items-center justify-center gap-1.5 text-red-500 mt-3 animate-[fadeIn_0.2s_ease-in-out]">
+              <AlertCircle size={16} />
+              <span className="text-sm font-bold">{errorMsg}</span>
+            </div>
+          )}
+        </div>
 
         {/* ปุ่ม Submit */}
         <Button
@@ -80,7 +91,7 @@ const LoginForm = ({
           variant="primary"
           isLoading={isLoading}
           disabled={otp.length < 6 || isLoading}
-          className="w-full mt-4 text-xl"
+          className="w-full mt-2 text-xl"
         >
           เข้าสู่ระบบ
         </Button>

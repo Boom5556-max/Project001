@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { X, Save, UserCheck, ChevronDown } from "lucide-react";
+// ✨ เพิ่ม Check และ AlertCircle เข้ามาใช้งานกับ Popup
+import { X, Save, UserCheck, ChevronDown, Check, AlertCircle } from "lucide-react";
 import Button from "../common/Button.jsx";
 
-const UserFormModal = ({ user, onClose, onSave }) => {
+// ✨ รับ showAlert ผ่าน props
+const UserFormModal = ({ user, onClose, onSave, showAlert }) => {
   const [formData, setFormData] = useState({
     user_id: user?.user_id || "",
     title: user?.title || "",
@@ -15,18 +17,33 @@ const UserFormModal = ({ user, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await onSave(formData.user_id, formData);
-    if (result.success) onClose();
-    else alert(result.message);
+    
+    // ✨ เปลี่ยนจาก alert() เป็น showAlert()
+    if (result.success) {
+      onClose();
+      showAlert(
+        "บันทึกข้อมูลสำเร็จ",
+        <Check size={50} className="text-green-500" />,
+        null,
+        false
+      );
+    } else {
+      showAlert(
+        "เกิดข้อผิดพลาด: " + (result.message || "ไม่สามารถบันทึกข้อมูลได้"),
+        <AlertCircle size={50} className="text-red-500" />,
+        null,
+        false
+      );
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 font-sans">
       <form 
         onSubmit={handleSubmit} 
-        // 🚩 ปรับ max-h และเพิ่ม overflow เพื่อให้เลื่อนได้ภายในถ้าจอเล็กเกินไป
         className="bg-[#FFFFFF] w-full max-w-lg rounded-[32px] md:rounded-[40px] p-6 md:p-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)] border border-white flex flex-col max-h-[95vh]"
       >
-        {/* Header Section - ปรับ Margin ให้เล็กลง */}
+        {/* Header Section */}
         <div className="flex justify-between items-start mb-6">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-[#302782] mb-1">
@@ -43,7 +60,7 @@ const UserFormModal = ({ user, onClose, onSave }) => {
           </button>
         </div>
 
-        {/* Form Fields - ปรับความสูงและระยะห่างใหม่ */}
+        {/* Form Fields */}
         <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-grow mb-6">
           {/* User ID */}
           <div className="flex flex-col gap-1.5">
@@ -58,7 +75,7 @@ const UserFormModal = ({ user, onClose, onSave }) => {
             />
           </div>
 
-          {/* Title & Name Group - ใช้ Grid 2 คอลัมน์เพื่อให้เตี้ยลง */}
+          {/* Title & Name Group */}
           <div className="grid grid-cols-12 gap-3">
             <div className="col-span-4 flex flex-col gap-1.5">
               <label className="text-[13px] font-bold text-gray-500 ml-1">คำนำหน้า</label>
@@ -125,7 +142,6 @@ const UserFormModal = ({ user, onClose, onSave }) => {
               >
                 <option value="teacher">อาจารย์ (Teacher)</option>
                 <option value="staff">เจ้าหน้าที่ (Staff)</option>
-                <option value="student">นิสิต (Student)</option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                 <UserCheck size={18} />
@@ -134,7 +150,7 @@ const UserFormModal = ({ user, onClose, onSave }) => {
           </div>
         </div>
 
-        {/* Action Button - ปรับความสูงปุ่มให้ไม่กินพื้นที่เกินไป */}
+        {/* Action Button */}
         <div className="pt-2 flex-shrink-0">
           <Button 
             type="submit" 

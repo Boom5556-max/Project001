@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { ChevronLeft, Plus, Edit3, Trash2, UserCog, Mail } from "lucide-react";
+import { ChevronLeft, Plus, Edit3, Trash2, UserCog, Mail, Check, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUsers } from "../hooks/useUsers";
 import Navbar from "../components/layout/Navbar.jsx";
 import Button from "../components/common/Button.jsx";
-import UserFormModal from "../components/user/UserFormModal.jsx"; // 🚩 Import Logic จากไฟล์ใหม่
+import UserFormModal from "../components/user/UserFormModal.jsx"; 
+import ActionModal from "../components/common/ActionModal"; // ✨ นำเข้า ActionModal
 
 const Users = () => {
   const navigate = useNavigate();
@@ -12,16 +13,62 @@ const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
+  // ✨ เพิ่ม State สำหรับจัดการ Alert
+  const [alertConfig, setAlertConfig] = useState({
+    isOpen: false,
+    title: "",
+    icon: null,
+    onConfirm: null,
+    showConfirm: true,
+  });
+
   const openModal = (user = null) => {
     setEditingUser(user);
     setIsModalOpen(true);
   };
 
+  // ✨ ฟังก์ชันเรียก Alert
+  const showAlert = (title, icon, onConfirm = null, showConfirm = true) => {
+    setAlertConfig({
+      isOpen: true,
+      title,
+      icon,
+      onConfirm:
+        onConfirm ||
+        (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
+      showConfirm,
+    });
+  };
+
+  // ✨ แก้ไข handleDelete ให้ใช้ ActionModal
   const handleDelete = async (userId) => {
-    if (window.confirm(`คุณแน่ใจหรือไม่ที่จะลบผู้ใช้รายนี้?`)) {
-      const result = await deleteUser(userId);
-      if (!result.success) alert(result.message);
-    }
+    showAlert(
+      `คุณแน่ใจหรือไม่ที่จะลบผู้ใช้รายนี้?`,
+      <Trash2 size={50} className="text-red-500" />,
+      async () => {
+        const result = await deleteUser(userId);
+        setAlertConfig((prev) => ({ ...prev, isOpen: false })); // ปิดหน้าต่างยืนยันก่อน
+
+        // รอจังหวะนิดนึงแล้วแสดงผลลัพธ์
+        setTimeout(() => {
+          if (!result.success) {
+            showAlert(
+              "ลบไม่สำเร็จ: " + (result.message || "เกิดข้อผิดพลาด"),
+              <AlertCircle size={50} className="text-red-500" />,
+              null,
+              false
+            );
+          } else {
+            showAlert(
+              "ลบผู้ใช้งานสำเร็จ",
+              <Check size={50} className="text-green-500" />,
+              null,
+              false
+            );
+          }
+        }, 150);
+      }
+    );
   };
 
   return (
@@ -73,7 +120,7 @@ const Users = () => {
                     <button onClick={() => openModal(u)} className="p-3 bg-[#FFFFFF] border border-gray-200 rounded-2xl text-gray-400 hover:text-[#302782] transition-colors" title="แก้ไข">
                       <Edit3 size={22} />
                     </button>
-                    <button onClick={() => handleDelete(u.user_id)} className="p-3 bg-[#FFFFFF] border border-gray-200 rounded-2xl text-gray-400 hover:text-gray-600 transition-colors" title="ลบ">
+                    <button onClick={() => handleDelete(u.user_id)} className="p-3 bg-[#FFFFFF] border border-gray-200 rounded-2xl text-gray-400 hover:text-red-600 transition-colors" title="ลบ">
                       <Trash2 size={22} />
                     </button>
                   </div>
@@ -89,6 +136,18 @@ const Users = () => {
           user={editingUser} 
           onClose={() => setIsModalOpen(false)} 
           onSave={editingUser ? updateUser : addUser}
+          showAlert={showAlert} // ✨ ส่ง prop showAlert ไปให้ UserFormModal
+        />
+      )}
+
+      {/* ✨ Component แสดง Alert */}
+      {alertConfig.isOpen && (
+        <ActionModal
+          icon={alertConfig.icon}
+          title={alertConfig.title}
+          showConfirm={alertConfig.showConfirm}
+          onClose={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
+          onConfirm={alertConfig.onConfirm}
         />
       )}
     </div>

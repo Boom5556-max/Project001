@@ -24,7 +24,6 @@ export const useNotificationLogic = () => {
       setUserRole(role);
 
       if (role === "staff") {
-        // 🚩 ถ้าเป็น Staff ยิงเข้า API รวม 3 ตัวที่นายเขียนไว้ใน Backend
         const [pRes, aRes, rRes] = await Promise.all([
           api.get("/bookings/pending"),
           api.get("/bookings/approved"),
@@ -34,7 +33,6 @@ export const useNotificationLogic = () => {
         setApprovedRequests(aRes.data || []);
         setHistoryRequests(rRes.data || []);
       } else {
-        // 🚩 ถ้าเป็น Teacher ยิงเข้า My Bookings ปกติ
         const [activeRes, historyRes] = await Promise.all([
           api.get("/bookings/my-bookings/active"),
           api.get("/bookings/my-bookings/history")
@@ -51,35 +49,38 @@ export const useNotificationLogic = () => {
     }
   }, []);
 
+  // ✨ ปรับให้ return ค่า success กลับไป แทนการใช้ alert
   const handleUpdateStatus = async (bookingId, status) => {
     try {
       await api.put(`/bookings/${bookingId}/status`, { status });
-      setSelectedBooking(null);
-      fetchBookings();
+      fetchBookings(); // ดึงข้อมูลใหม่
+      return { success: true };
     } catch (error) {
-      alert(error.response?.data?.message || "อัปเดตไม่สำเร็จ");
+      return { success: false, message: error.response?.data?.message || "อัปเดตไม่สำเร็จ" };
     }
   };
 
+  // ✨ ปรับให้ return ค่า success กลับไป และลบ alert ออก
   const handleUpdateBooking = async (bookingId, updatedData) => {
     try {
       await api.put(`/bookings/${bookingId}`, updatedData);
-      setSelectedBooking(null);
-      fetchBookings();
-      alert("แก้ไขสำเร็จ");
+      fetchBookings(); // ดึงข้อมูลใหม่
+      return { success: true };
     } catch (error) {
-      alert("แก้ไขไม่สำเร็จ");
+      return { success: false, message: error.response?.data?.message || "แก้ไขไม่สำเร็จ" };
     }
   };
 
+  // ✨ ปรับให้ return ค่า success กลับไป และลบ window.confirm กับ alert ออก
   const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm("ยืนยันการยกเลิก?")) return;
     try {
-      await api.put(`/bookings/${bookingId}/cancel`);
-      setSelectedBooking(null);
-      fetchBookings();
+      // ✨ 1. เปลี่ยนเป็น api.patch (ถ้า backend ใช้ route แบบ router.patch('/:id/cancel', ...))
+      const response = await api.put(`/bookings/${bookingId}/cancel`);
+      fetchBookings(); // ดึงข้อมูลใหม่
+      // ✨ 2. ดึงเอาข้อความ success จาก backend ส่งกลับไปด้วย
+      return { success: true, message: response.data.message }; 
     } catch (error) {
-      alert("ยกเลิกไม่สำเร็จ");
+      return { success: false, message: error.response?.data?.message || "ยกเลิกไม่สำเร็จ" };
     }
   };
 
