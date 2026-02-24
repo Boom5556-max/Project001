@@ -6,7 +6,7 @@ import {
   Trash2,
   Check,
   AlertCircle,
-} from "lucide-react"; // เอา icon ที่ไม่ใช้ในหน้านี้ออกไปบ้างแล้ว
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRooms } from "../hooks/useRooms";
 import { jwtDecode } from "jwt-decode";
@@ -14,7 +14,7 @@ import Navbar from "../components/layout/Navbar.jsx";
 import Button from "../components/common/Button.jsx";
 import RoomCard from "../components/rooms/RoomCard";
 import ActionModal from "../components/common/ActionModal";
-import RoomFormModal from "../components/rooms/RoomFormModal"; // ✨ ดึง Component ที่เราแยกมาใช้งาน
+import RoomFormModal from "../components/rooms/RoomFormModal";
 
 const Rooms = () => {
   const navigate = useNavigate();
@@ -30,6 +30,9 @@ const Rooms = () => {
     icon: null,
     onConfirm: null,
     showConfirm: true,
+    singleButton: false, // รองรับปุ่มเดียว
+    variant: "primary",
+    showBg: true
   });
 
   useEffect(() => {
@@ -49,44 +52,58 @@ const Rooms = () => {
     setIsModalOpen(true);
   };
 
-  const showAlert = (title, icon, onConfirm = null, showConfirm = true) => {
+  const showAlert = (title, icon, onConfirm = null, showConfirm = true, singleButton = false, variant = "primary", showBg = true) => {
     setAlertConfig({
       isOpen: true,
       title,
       icon,
-      onConfirm:
-        onConfirm ||
-        (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
+      onConfirm: onConfirm || (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
       showConfirm,
+      singleButton,
+      variant,
+      showBg, // ใส่ตัวแปรนี้เข้าไปใน state
     });
   };
 
   const handleDelete = async (roomId) => {
+    // 1. จังหวะถามยืนยัน (2 ปุ่ม, สีแดง, มีวงกลมเทา)
     showAlert(
       `คุณแน่ใจหรือไม่ที่จะลบห้อง ${roomId}?`,
-      <Trash2 size={50} className="text-red-500" />,
+      <Trash2 size={50} />,
       async () => {
         const result = await deleteRoom(roomId);
         setAlertConfig((prev) => ({ ...prev, isOpen: false }));
 
         setTimeout(() => {
           if (!result.success) {
+            // 2. ลบไม่สำเร็จ (ปุ่มเดียว, สีแดง, ไม่มีวงกลมเทา)
             showAlert(
               "ลบไม่สำเร็จ: " + result.message,
-              <AlertCircle size={50} className="text-red-500" />,
               null,
-              false
+              null,
+              false,
+              true,
+              "danger",
+              false // showBg = false (เอาแถบเทาออก)
             );
           } else {
+            // 3. ลบสำเร็จ (ปุ่มเดียว, สีน้ำเงิน, ไม่มีวงกลมเทา)
             showAlert(
               "ลบห้องเรียนสำเร็จ",
-              <Check size={50} className="text-green-500" />,
               null,
-              false
+              null,
+              false,
+              true,
+              "primary",
+              false // showBg = false (เอาแถบเทาออก)
             );
           }
         }, 150);
-      }
+      },
+      true,     // showConfirm
+      false,    // singleButton
+      "danger", // variant
+      true      // showBg (ตอนถามให้มีวงกลมเทาไว้ก่อน)
     );
   };
 
@@ -153,7 +170,6 @@ const Rooms = () => {
         )}
       </div>
 
-      {/* ✨ เรียกใช้งาน Component ที่นำเข้ามา */}
       {isModalOpen && (
         <RoomFormModal
           room={editingRoom}
@@ -168,8 +184,12 @@ const Rooms = () => {
           icon={alertConfig.icon}
           title={alertConfig.title}
           showConfirm={alertConfig.showConfirm}
+          singleButton={alertConfig.singleButton}
+          variant={alertConfig.variant}
+          buttonText="ตกลง"
           onClose={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={alertConfig.onConfirm}
+          showBg={alertConfig.showBg}
         />
       )}
     </div>

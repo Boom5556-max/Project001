@@ -1,14 +1,10 @@
 import React from "react";
-import { X, Info, User, Clock } from "lucide-react";
+import { X, Info, User, Clock, MapPin } from "lucide-react"; // เพิ่ม MapPin ให้สวยขึ้น
 
 const EventModal = ({ event, onClose }) => {
   if (!event) return null;
 
-  // 🔍 ตรวจสอบโครงสร้างข้อมูล (FullCalendar บางเวอร์ชันเก็บข้อมูลต่างกัน)
-  // พยายามดึงจาก extendedProps ของ FullCalendar หรือดึงจาก Object ปกติ
   const title = event.title || event._def?.title || "ไม่มีหัวข้อ";
-  
-  // 🚩 จุดสำคัญ: ดึง props มาจากที่ๆ มันควรจะอยู่
   const props = event.extendedProps || event._def?.extendedProps || {};
 
   return (
@@ -46,6 +42,19 @@ const EventModal = ({ event, onClose }) => {
           </div>
 
           <div className="space-y-6">
+            {/* 🚩 แสดงเลขห้อง/ชื่อห้อง (เพิ่มใหม่ให้ตรงกับ formatCalendarEvents) */}
+            <div className="flex items-start gap-4">
+              <div className="bg-gray-50 p-3 rounded-2xl text-[#B2BB1E] border border-gray-100 shrink-0">
+                <MapPin size={20} />
+              </div>
+              <div className="pt-1">
+                <p className="text-xs font-bold text-gray-500 mb-0.5">ห้องเรียน</p>
+                <p className="text-sm font-bold text-[#302782]">
+                  {props.room_id || "ไม่ระบุเลขห้อง"} 
+                </p>
+              </div>
+            </div>
+
             {/* อาจารย์ */}
             <div className="flex items-start gap-4">
               <div className="bg-gray-50 p-3 rounded-2xl text-[#302782] border border-gray-100 shrink-0">
@@ -67,7 +76,6 @@ const EventModal = ({ event, onClose }) => {
               <div className="pt-1">
                 <p className="text-xs font-bold text-gray-500 mb-0.5">วันและเวลา</p>
                 <p className="text-sm font-bold text-[#302782]">
-                  {/* 🚩 แสดงผลวันที่ไทยที่ format มาจาก helper */}
                   {props.fullDate || "ไม่ระบุวันที่"}
                 </p>
                 <p className="text-sm font-bold text-[#B2BB1E] mt-1">
@@ -75,11 +83,11 @@ const EventModal = ({ event, onClose }) => {
                 </p>
               </div>
             </div>
-            
-            {/* 🚩 แสดงสถานะ "งดใช้ห้อง" เพิ่มเติมถ้ามี */}
+
+            {/* สถานะงดใช้ห้อง */}
             {props.temporarily_closed && (
-              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-[20px]">
-                <p className="text-gray-500 text-sm font-bold text-center flex items-center justify-center gap-2">
+              <div className="mt-4 p-4 bg-red-50 border border-red-100 rounded-[20px]">
+                <p className="text-red-500 text-sm font-bold text-center flex items-center justify-center gap-2">
                   ⚠️ คาบเรียนนี้ถูกงดใช้ห้อง
                 </p>
               </div>

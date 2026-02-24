@@ -1,18 +1,10 @@
 import React, { useState } from "react";
-import { X, User, Calendar, Timer, Edit3, Trash2, Save, Ban, MessageSquare, CheckCircle, XCircle } from "lucide-react";
+import { X, User, Calendar, Timer, Edit3, Trash2, Save, Ban, MessageSquare, CheckCircle, XCircle, Clock as ClockIcon } from "lucide-react";
 import { DetailItem, EditField } from "./NotificationComponents";
 import Button from "../common/Button";
 
 const BookingDetailModal = ({ 
-  booking, 
-  userRole, 
-  onClose, 
-  onUpdateStatus, 
-  onCancel, 
-  onBan, 
-  onUpdateBooking, 
-  getFullName,
-  showAlert // ✨ รับฟังก์ชันเรียก Popup เข้ามา
+  booking, userRole, onClose, onUpdateStatus, onCancel, onBan, onUpdateBooking, getFullName, showAlert 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ purpose: "", date: "", start_time: "", end_time: "" });
@@ -20,10 +12,7 @@ const BookingDetailModal = ({
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return date.toISOString().split('T')[0];
   };
 
   const startEditing = () => {
@@ -36,53 +25,34 @@ const BookingDetailModal = ({
     setIsEditing(true);
   };
 
-  // ✨ ปรับปรุงให้แจ้งผลสำเร็จ/ล้มเหลว
   const onSaveEdit = async () => {
     const bId = booking.booking_id || booking.id;
     const result = await onUpdateBooking(bId, editForm);
-    
     if (result?.success) {
       setIsEditing(false);
-      onClose(); // ปิด Modal ข้อมูล
-      showAlert(
-        "บันทึกการแก้ไขสำเร็จ", 
-        <CheckCircle size={50} className="text-green-500" />, 
-        null, 
-        false
-      );
+      onClose();
+      showAlert("บันทึกการแก้ไขสำเร็จ", <CheckCircle size={50} className="text-[#B2BB1E]" />, null, false);
     } else {
-      showAlert(
-        "แก้ไขไม่สำเร็จ: " + (result?.message || "เกิดข้อผิดพลาด"), 
-        <XCircle size={50} className="text-red-500" />, 
-        null, 
-        false
-      );
+      showAlert("แก้ไขไม่สำเร็จ", <XCircle size={50} />, null, false, "danger");
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#FFFFFF] w-full max-w-md md:max-w-lg rounded-[32px] p-5 sm:p-7 flex flex-col shadow-2xl my-auto">
-        
-        {/* Header */}
+      <div className="bg-[#FFFFFF] w-full max-w-md md:max-w-lg rounded-[32px] p-5 sm:p-7 flex flex-col shadow-2xl my-auto animate-in fade-in zoom-in duration-200">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
-          <h3 className="text-xl font-bold text-[#302782]">
-            {isEditing ? "แก้ไขข้อมูล" : `ห้อง ${booking.room_id}`}
-          </h3>
-          <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
-            <X size={20}/>
-          </button>
+          <h3 className="text-xl font-bold text-[#302782]">{isEditing ? "แก้ไขข้อมูล" : `ห้อง ${booking.room_id}`}</h3>
+          <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"><X size={20}/></button>
         </div>
 
-        {/* Content */}
         <div className="flex-grow space-y-3 mb-2">
           {isEditing ? (
             <div className="space-y-3 pb-2">
               <EditField icon={MessageSquare} label="วัตถุประสงค์" value={editForm.purpose} onChange={v => setEditForm({...editForm, purpose: v})} />
               <EditField icon={Calendar} label="วันที่" type="date" value={editForm.date} onChange={v => setEditForm({...editForm, date: v})} />
               <div className="flex gap-3">
-                <EditField icon={Clock} label="เริ่ม" type="time" value={editForm.start_time} onChange={v => setEditForm({...editForm, start_time: v})} />
-                <EditField icon={Clock} label="สิ้นสุด" type="time" value={editForm.end_time} onChange={v => setEditForm({...editForm, end_time: v})} />
+                <EditField icon={ClockIcon} label="เริ่ม" type="time" value={editForm.start_time} onChange={v => setEditForm({...editForm, start_time: v})} />
+                <EditField icon={ClockIcon} label="สิ้นสุด" type="time" value={editForm.end_time} onChange={v => setEditForm({...editForm, end_time: v})} />
               </div>
             </div>
           ) : (
@@ -95,31 +65,18 @@ const BookingDetailModal = ({
           )}
         </div>
 
-        {/* Action Buttons */}
         {!booking.isHistory && (
           <div className="pt-3 border-t border-gray-100 flex-shrink-0 mt-2">
             {isEditing ? (
               <div className="flex gap-2">
-                <Button className="flex-1 bg-[#302782] text-[#FFFFFF] rounded-2xl py-3 font-bold" onClick={onSaveEdit}>
-                  <Save size={18} className="mr-2 inline"/> บันทึก
-                </Button>
-                <Button className="bg-gray-200 text-gray-600 rounded-2xl px-6 py-3 font-bold" onClick={() => setIsEditing(false)}>
-                  ยกเลิก
-                </Button>
+                <Button className="flex-1 bg-[#302782] text-white rounded-2xl py-3 font-bold" onClick={onSaveEdit}><Save size={18} className="mr-2 inline"/> บันทึก</Button>
+                <Button className="bg-gray-200 text-gray-600 rounded-2xl px-6 py-3 font-bold" onClick={() => setIsEditing(false)}>ยกเลิก</Button>
               </div>
             ) : (
-              <ActionButtons 
-                userRole={userRole} 
-                booking={booking} 
-                onUpdateStatus={onUpdateStatus} 
-                onCancel={onCancel} 
-                onBan={onBan}         
-                onEdit={startEditing} 
-              />
+              <ActionButtons userRole={userRole} booking={booking} onUpdateStatus={onUpdateStatus} onCancel={onCancel} onBan={onBan} onEdit={startEditing} />
             )}
           </div>
         )}
-
       </div>
     </div>
   );
@@ -132,45 +89,25 @@ const ActionButtons = ({ userRole, booking, onUpdateStatus, onCancel, onBan, onE
 
   return (
     <div className="flex flex-col gap-2">
-      {userRole === "staff" && (
-        <>
-          {isPending && (
-            <div className="flex gap-2">
-              <Button className="flex-1 bg-[#B2BB1E] text-[#FFFFFF] rounded-2xl font-bold py-3" onClick={() => onUpdateStatus(bId, "approved")}>อนุมัติ</Button>
-              <Button className="flex-1 bg-gray-200 text-gray-600 rounded-2xl font-bold py-3" onClick={() => onUpdateStatus(bId, "rejected")}>ไม่อนุมัติ</Button>
-            </div>
-          )}
-          {isApproved && (
-            <Button className="bg-gray-200 text-gray-600 rounded-2xl font-bold py-3" onClick={() => onBan(bId)}>
-              <Ban size={18} className="mr-2 inline"/> งดใช้ห้อง 
-            </Button>
-          )}
-        </>
+      {userRole === "staff" && isPending && (
+        <div className="flex gap-3">
+          <Button className="flex-1 bg-[#B2BB1E] text-white rounded-2xl font-bold py-3.5 active:scale-95 transition-all" onClick={() => onUpdateStatus(bId)}>อนุมัติ</Button>
+          <Button className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold py-3.5 shadow-lg shadow-red-100 active:scale-95 transition-all" onClick={() => onCancel(bId)}>ไม่อนุมัติ</Button>
+        </div>
       )}
-
-      {userRole === "teacher" && (
+      {((userRole === "staff" || userRole === "teacher") && isApproved) && (
+        <Button className="w-full bg-red-500 text-white rounded-2xl font-bold py-3.5 active:scale-95 transition-all" onClick={() => onBan(bId)}>
+          <Ban size={18} className="mr-2 inline"/> งดใช้ห้อง
+        </Button>
+      )}
+      {userRole === "teacher" && isPending && (
         <>
-          {isPending && (
-            <div className="flex flex-col gap-2">
-              <Button className="bg-[#302782] text-[#FFFFFF] rounded-2xl font-bold py-3" onClick={onEdit}>
-                <Edit3 size={18} className="mr-2 inline"/> แก้ไขข้อมูล
-              </Button>
-              <Button className="bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500 rounded-2xl font-bold py-3 transition-colors" onClick={() => onCancel(bId)}>
-                <Trash2 size={18} className="mr-2 inline"/> ยกเลิกคำขอ
-              </Button>
-            </div>
-          )}
-          {isApproved && (
-            <Button className="bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500 rounded-2xl font-bold py-3 transition-colors" onClick={() => onBan(bId)}>
-              <Ban size={18} className="mr-2 inline"/> งดใช้ห้อง 
-            </Button>
-          )}
+          <Button className="w-full bg-[#302782] text-white rounded-2xl font-bold py-3.5" onClick={onEdit}><Edit3 size={18} className="mr-2 inline"/> แก้ไขข้อมูล</Button>
+          <Button className="w-full bg-gray-100 text-gray-500 hover:text-red-500 rounded-2xl font-bold py-3.5 transition-colors" onClick={() => onCancel(bId)}><Trash2 size={18} className="mr-2 inline"/> ยกเลิกคำขอ</Button>
         </>
       )}
     </div>
   );
 };
-
-const Clock = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
 
 export default BookingDetailModal;

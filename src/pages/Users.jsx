@@ -5,7 +5,7 @@ import { useUsers } from "../hooks/useUsers";
 import Navbar from "../components/layout/Navbar.jsx";
 import Button from "../components/common/Button.jsx";
 import UserFormModal from "../components/user/UserFormModal.jsx"; 
-import ActionModal from "../components/common/ActionModal"; // ✨ นำเข้า ActionModal
+import ActionModal from "../components/common/ActionModal";
 
 const Users = () => {
   const navigate = useNavigate();
@@ -13,13 +13,16 @@ const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  // ✨ เพิ่ม State สำหรับจัดการ Alert
+  // 🚩 เพิ่ม state ให้รองรับ singleButton, variant และ showBg เหมือน Rooms
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
     title: "",
     icon: null,
     onConfirm: null,
     showConfirm: true,
+    singleButton: false,
+    variant: "primary",
+    showBg: true
   });
 
   const openModal = (user = null) => {
@@ -27,47 +30,59 @@ const Users = () => {
     setIsModalOpen(true);
   };
 
-  // ✨ ฟังก์ชันเรียก Alert
-  const showAlert = (title, icon, onConfirm = null, showConfirm = true) => {
+  // 🚩 ปรับ showAlert ให้รับ parameter ครบเหมือนหน้า Rooms
+  const showAlert = (title, icon, onConfirm = null, showConfirm = true, singleButton = false, variant = "primary", showBg = true) => {
     setAlertConfig({
       isOpen: true,
       title,
       icon,
-      onConfirm:
-        onConfirm ||
-        (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
+      onConfirm: onConfirm || (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
       showConfirm,
+      singleButton,
+      variant,
+      showBg
     });
   };
 
-  // ✨ แก้ไข handleDelete ให้ใช้ ActionModal
   const handleDelete = async (userId) => {
+    // 1. จังหวะถามยืนยัน: ใช้สีแดง (danger) + มีวงกลมเทา
     showAlert(
       `คุณแน่ใจหรือไม่ที่จะลบผู้ใช้รายนี้?`,
-      <Trash2 size={50} className="text-red-500" />,
+      <Trash2 size={50} />,
       async () => {
         const result = await deleteUser(userId);
-        setAlertConfig((prev) => ({ ...prev, isOpen: false })); // ปิดหน้าต่างยืนยันก่อน
+        setAlertConfig((prev) => ({ ...prev, isOpen: false }));
 
-        // รอจังหวะนิดนึงแล้วแสดงผลลัพธ์
         setTimeout(() => {
           if (!result.success) {
+            // 2. ลบไม่สำเร็จ: ปุ่มเดียว + สีแดง + ไม่มีวงกลมเทา
             showAlert(
               "ลบไม่สำเร็จ: " + (result.message || "เกิดข้อผิดพลาด"),
-              <AlertCircle size={50} className="text-red-500" />,
               null,
+              null,
+              false,
+              true,
+              "danger",
               false
             );
           } else {
+            // 3. ลบสำเร็จ: ปุ่มเดียว + สีน้ำเงิน + ไม่มีวงกลมเทา
             showAlert(
               "ลบผู้ใช้งานสำเร็จ",
-              <Check size={50} className="text-green-500" />,
               null,
+              null,
+              false,
+              true,
+              "primary",
               false
             );
           }
         }, 150);
-      }
+      },
+      true,    // showConfirm
+      false,   // singleButton
+      "danger",// variant
+      true     // showBg
     );
   };
 
@@ -75,10 +90,9 @@ const Users = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
       <div className="p-6 pb-24 flex-grow">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8 max-w-4xl mx-auto">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="none" onClick={() => navigate(-1)} className="text-[#B2BB1E] bg-transparent shadow-none border-none">
+            <Button variant="ghost" size="none" onClick={() => navigate(-1)} className="text-[#B2BB1E] bg-transparent shadow-none border-none p-0">
               <ChevronLeft size={28} />
             </Button>
             <h1 className="text-3xl font-bold text-[#302782]">จัดการผู้ใช้งาน</h1>
@@ -88,7 +102,6 @@ const Users = () => {
           </Button>
         </div>
 
-        {/* User List */}
         <div className="max-w-4xl mx-auto">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -98,7 +111,7 @@ const Users = () => {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {users.map((u) => (
-                <div key={u.user_id} className="bg-[#FFFFFF] p-6 rounded-[35px] shadow-sm border border-gray-100 flex justify-between items-center transition-colors">
+                <div key={u.user_id} className="bg-[#FFFFFF] p-6 rounded-[35px] shadow-sm border border-gray-100 flex justify-between items-center">
                   <div className="flex items-center gap-5">
                     <div className="w-16 h-16 bg-gray-50 rounded-[24px] flex items-center justify-center text-[#302782] border border-gray-100">
                       <UserCog size={32} />
@@ -136,16 +149,20 @@ const Users = () => {
           user={editingUser} 
           onClose={() => setIsModalOpen(false)} 
           onSave={editingUser ? updateUser : addUser}
-          showAlert={showAlert} // ✨ ส่ง prop showAlert ไปให้ UserFormModal
+          showAlert={showAlert} 
         />
       )}
 
-      {/* ✨ Component แสดง Alert */}
+      {/* 🚩 แสดง ActionModal พร้อมส่ง Props ครบชุดเหมือน Rooms */}
       {alertConfig.isOpen && (
         <ActionModal
           icon={alertConfig.icon}
           title={alertConfig.title}
           showConfirm={alertConfig.showConfirm}
+          singleButton={alertConfig.singleButton}
+          variant={alertConfig.variant}
+          showBg={alertConfig.showBg}
+          buttonText="ตกลง"
           onClose={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={alertConfig.onConfirm}
         />

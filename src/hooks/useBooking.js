@@ -23,7 +23,12 @@ export const useBookingLogic = (initialId) => {
     const fetchRooms = async () => {
       try {
         const res = await api.get("/rooms/");
-        setRooms(Array.isArray(res.data) ? res.data : []);
+        const allRooms = Array.isArray(res.data) ? res.data : [];
+
+        // ✅ กรองเฉพาะห้องที่ไม่ได้อยู่ในสถานะซ่อม (repair !== true)
+        const availableRooms = allRooms.filter((room) => room.repair !== true);
+
+        setRooms(availableRooms);
       } catch (err) {
         console.error("Fetch rooms error:", err);
       }
@@ -33,17 +38,18 @@ export const useBookingLogic = (initialId) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // 1. ตรวจสอบเวลาเบื้องต้น
     if (formData.start_time >= formData.end_time) {
       setServerMessage("❌ เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม");
-      setIsRoomBusy(true);
+      setIsRoomBusy(false); // ไม่ใช่เคสห้องไม่ว่าง แต่เป็นกรอกข้อมูลผิด
       setShowStatus(true);
       return;
     }
 
     setIsLoading(true);
     setShowStatus(false);
-    
+
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
@@ -60,33 +66,46 @@ export const useBookingLogic = (initialId) => {
 
       const response = await api.post(endpoint, formData);
 
-      // --- ✅ ส่วนที่แก้ไข: จองสำเร็จแล้วทำอะไรต่อ? ---
+      // --- กรณีสำเร็จ ---
       setIsRoomBusy(false);
-      setServerMessage(userRole === "staff" ? "✅ จองสำเร็จแล้ว" : "✅ ส่งคำขอจองสำเร็จแล้ว");
+      setServerMessage(
+        userRole === "staff" ? "✅ จองสำเร็จแล้ว" : "✅ ส่งคำขอจองสำเร็จแล้ว",
+      );
       setShowStatus(true);
 
-      // 1. ล้างข้อมูลในฟอร์ม (Reset Form)
-      // เราเก็บ room_id เดิมไว้เผื่อจองห้องเดิมแต่เปลี่ยนเวลา แต่ล้างส่วนอื่นทิ้ง
+      // ล้างข้อมูลฟอร์มแต่เก็บ room_id ไว้
       setFormData({
-        room_id: formData.room_id, 
+        room_id: formData.room_id,
         date: "",
         start_time: "",
         end_time: "",
         purpose: "",
       });
 
-      // 2. (Optional) ลบข้อความแจ้งเตือนออกอัตโนมัติหลังจาก 4 วินาที
-      setTimeout(() => {
-        setShowStatus(false);
-      }, 4000);
-
-      // ❌ ลบ navigate("/dashboard") ออก เพื่อให้อยู่หน้าเดิม
-      // -------------------------------------------
-
+      setTimeout(() => setShowStatus(false), 4000);
     } catch (error) {
-      setIsRoomBusy(true);
-      const errorMessage = error.response?.data?.message || "ห้องไม่ว่างในช่วงเวลานี้";
-      setServerMessage(error.response ? errorMessage : "❌ เกิดข้อผิดพลาดในการส่งข้อมูล");
+      // --- กรณีเกิด Error ---
+      const status = error.response?.status;
+      const errorMessage = error.response?.data?.message;
+
+      if (status === 409) {
+        // 🚩 เคสเดียวที่จะให้ขึ้นสถานะ "ไม่ว่าง" (การ์ดสีเทา)
+        setIsRoomBusy(true);
+        setServerMessage(errorMessage || "ห้องไม่ว่างในช่วงเวลานี้");
+      } else if (status === 400) {
+        // เคสข้อมูลผิดพลาด (เช่น จองวันย้อนหลัง)
+        setIsRoomBusy(false);
+        setServerMessage(`❌ ${errorMessage || "ข้อมูลไม่ถูกต้อง"}`);
+      } else {
+        // เคสอื่นๆ เช่น CORS พัง, เน็ตหลุด, Server ดับ
+        setIsRoomBusy(false);
+        setServerMessage(
+          error.response
+            ? `❌ ${errorMessage}`
+            : "❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (Network Error)",
+        );
+      }
+
       setShowStatus(true);
     } finally {
       setIsLoading(false);
@@ -94,7 +113,14 @@ export const useBookingLogic = (initialId) => {
   };
 
   return {
-    rooms, formData, setFormData, handleSubmit,
-    isLoading, showStatus, isRoomBusy, serverMessage, setShowStatus
+    rooms,
+    formData,
+    setFormData,
+    handleSubmit,
+    isLoading,
+    showStatus,
+    isRoomBusy,
+    serverMessage,
+    setShowStatus,
   };
 };

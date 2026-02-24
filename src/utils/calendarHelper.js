@@ -50,7 +50,7 @@ export const formatCalendarEvents = (bookingsData, schedulesData) => {
         endTime: String(item.end_time || "00:00").substring(0, 5),
         subjectName: item.subject_name,
         purpose: item.purpose,
-        roomName: item.room_name // เก็บชื่อห้องแยกไว้ใช้ใน Modal ด้วย
+        room_id: item.room_id || "ไม่ระบุเลขห้อง"
       },
 
       // 🚩 2. ปรับสีให้แยกความต่าง (เข้ม/อ่อน)
