@@ -29,7 +29,6 @@ const Calendar = () => {
     handleRestoreSchedule,
   } = useCalendarData(id);
 
-  // 1. ดึงข้อมูล User จาก LocalStorage
   const userData = useMemo(() => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -37,9 +36,7 @@ const Calendar = () => {
         const parsed = JSON.parse(storedUser);
         return {
           id: parsed?.user_id || parsed?.id,
-          role: String(parsed?.role || "")
-            .toLowerCase()
-            .trim(),
+          role: String(parsed?.role || "").toLowerCase().trim(),
         };
       }
     } catch (err) {
@@ -61,26 +58,19 @@ const Calendar = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center font-sans bg-[#F9FAFB]">
-        <div className="w-16 h-16 border-[5px] border-[#302782]/20 border-t-[#302782] rounded-full animate-spin mb-6"></div>
-        <p className="text-xl font-bold text-[#302782]">กำลังโหลดข้อมูลตาราง...</p>
-        <p className="text-base font-medium text-gray-500 mt-2">กรุณารอสักครู่</p>
+      <div className="h-screen flex flex-col items-center justify-center font-sans bg-[#FFFFFF]">
+        <div className="relative">
+            <div className="w-16 h-16 border-4 border-gray-100 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-t-[#302782] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin absolute top-0"></div>
+        </div>
+        <p className="text-lg font-bold text-[#302782] mt-6 tracking-tight">กำลังจัดเตรียมตารางเรียน...</p>
       </div>
     );
   }
 
-  // ฟังก์ชันเช็คสิทธิ์ก่อนแสดง Modal
   const checkPermission = (event) => {
     const props = event.extendedProps;
-    const isSchedule = props?.isSchedule;
-
-    const eventTeacherId = String(props?.teacher_id || "");
-    const currentUserId = String(userData.id || "");
-    const currentUserRole = String(userData.role || "")
-      .toLowerCase()
-      .trim();
-
-    if (!isSchedule) {
+    if (!props?.isSchedule) {
       setAlertConfig({
         show: true,
         title: "ดำเนินการไม่ได้",
@@ -89,31 +79,29 @@ const Calendar = () => {
       return false;
     }
 
-    if (currentUserRole === "staff") {
-      return true;
-    }
+    const isOwner = String(props?.teacher_id || "") === String(userData.id || "");
+    const isStaff = userData.role === "staff";
 
-    if (eventTeacherId === currentUserId) {
-      return true;
-    }
+    if (isOwner || isStaff) return true;
 
     setAlertConfig({
       show: true,
-      title: "ไม่มีสิทธิ์",
+      title: "สิทธิ์ไม่เพียงพอ",
       msg: "เฉพาะเจ้าหน้าที่หรืออาจารย์เจ้าของวิชาเท่านั้นที่จัดการได้",
     });
     return false;
   };
 
   return (
-    <div className="h-screen bg-[#F8F9FA] flex flex-col overflow-hidden relative font-sans">
+    <div className="h-screen bg-[#FDFDFF] flex flex-col overflow-hidden font-sans">
       <Navbar />
 
-      <div className="p-4 md:p-6 flex-grow flex flex-col overflow-hidden max-w-[1600px] mx-auto w-full">
+      {/* Main Container: จำกัดความสูงเท่าพื้นที่ที่เหลือ */}
+      <main className="flex-grow flex flex-col overflow-hidden p-3 sm:p-4 md:p-6 lg:p-8 max-w-[1800px] mx-auto w-full">
         
-        {/* Top Controls: ทำให้กะทัดรัดขึ้น */}
-        <div className="flex flex-row items-center justify-between gap-4 mb-4 bg-[#FFFFFF] p-4 rounded-[20px] shadow-sm border border-gray-100 flex-shrink-0">
-          <div className="w-full max-w-xs">
+        {/* Top Controls: ยืดหยุ่นตามหน้าจอ */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 flex-shrink-0">
+          <div className="w-full sm:w-auto flex-grow max-w-md">
             <RoomSelector
               rooms={rooms}
               selectedRoom={selectedRoom}
@@ -124,27 +112,26 @@ const Calendar = () => {
           {selectedRoom && (
             <button
               onClick={() => setIsCancelMode(!isCancelMode)}
-              className={`flex items-center gap-2 px-5 h-[42px] rounded-xl font-bold text-sm transition-all duration-300 ${
+              className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 h-12 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 ${
                 isCancelMode
-                  ? "bg-[#B2BB1E] text-[#FFFFFF]"
-                  : "bg-[#FFFFFF] text-gray-600 border border-gray-200"
+                  ? "bg-[#B2BB1E] text-white ring-4 ring-[#B2BB1E]/20"
+                  : "bg-white text-[#302782] border border-gray-200 hover:border-[#302782]"
               }`}
             >
               {isCancelMode ? <X size={18} /> : <Settings2 size={18} />}
-              <span className="hidden sm:inline">{isCancelMode ? "เสร็จสิ้น" : "จัดการสถานะ"}</span>
+              <span>{isCancelMode ? "เสร็จสิ้นการจัดการ" : "จัดการงดใช้ห้อง"}</span>
             </button>
           )}
         </div>
 
-        {/* 🚩 ส่วนแสดงปฏิทิน: ใช้ flex-grow เพื่อให้ยืดเต็มพื้นที่ที่เหลือของหน้าจอ */}
-        <div className="flex-grow bg-[#FFFFFF] rounded-[24px] shadow-sm overflow-hidden border border-gray-100 flex flex-col">
+        {/* Calendar Box: พื้นที่นี้จะขยายใหญ่ที่สุด */}
+        <div className="flex-grow bg-white rounded-[24px] sm:rounded-[32px] shadow-sm overflow-hidden border border-gray-100">
           <CalendarView
             events={events}
             isCancelMode={isCancelMode}
             currentUserId={userData.id}
             currentUserRole={userData.role}
             onEventClick={(info) => {
-              // ... (Logic Click เดิมของน้อง)
               if (isCancelMode) {
                 if (checkPermission(info.event)) {
                   const isClosed = info.event.extendedProps.temporarily_closed;
@@ -158,9 +145,9 @@ const Calendar = () => {
             }}
           />
         </div>
-      </div>
+      </main>
 
-      {/* --- Sub Components (Modals) --- */}
+      {/* --- Modals Section --- */}
       <EventModal
         event={selectedEvent}
         onClose={() => {
@@ -171,21 +158,22 @@ const Calendar = () => {
 
       {showConfirmCancel && (
         <ActionModal
-          icon={<Power size={40} strokeWidth={2.5} />}
+          icon={<Power size={32} />}
           title="ยืนยันการงดใช้ห้อง"
+          message={`วิชา "${showConfirmCancel.title}" จะแสดงสถานะงดการใช้ห้องเรียน`}
           onClose={() => setShowConfirmCancel(null)}
           onConfirm={async () => {
             const res = await handleCancelSchedule(showConfirmCancel.id);
             if (res.success) setShowConfirmCancel(null);
-            else if (res.isForbidden) alert("คุณไม่มีสิทธิ์ (403)");
           }}
         />
       )}
 
       {showConfirmRestore && (
         <ActionModal
-          icon={<RotateCcw size={40} strokeWidth={2.5} />}
-          title="ยกเลิกการงดใช้ห้อง"
+          icon={<RotateCcw size={32} />}
+          title="เปิดการใช้งานห้อง"
+          message={`ต้องการยกเลิกสถานะ "งดใช้ห้อง" สำหรับวิชานี้ใช่หรือไม่?`}
           onClose={() => setShowConfirmRestore(null)}
           onConfirm={async () => {
             const res = await handleRestoreSchedule(showConfirmRestore.id);
@@ -194,22 +182,18 @@ const Calendar = () => {
         />
       )}
 
-      {/* --- Alert Modal --- */}
+      {/* Alert Modal: Responsive Size */}
       {alertConfig.show && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
-          <div className="bg-[#FFFFFF] rounded-[32px] p-10 w-full max-w-md shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] text-center border border-white">
-            <div className="w-24 h-24 bg-gray-50 text-[#302782] rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle size={44} strokeWidth={2.5} />
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-[#302782]/20 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] p-8 w-full max-w-xs sm:max-w-sm shadow-2xl text-center border border-white scale-in">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 rotate-12">
+              <AlertCircle size={32} strokeWidth={2.5} />
             </div>
-            <h3 className="text-3xl font-bold text-[#302782] mb-4">
-              {alertConfig.title}
-            </h3>
-            <p className="text-gray-500 text-base mb-10 leading-relaxed font-medium">
-              {alertConfig.msg}
-            </p>
+            <h3 className="text-xl font-bold text-[#302782] mb-2">{alertConfig.title}</h3>
+            <p className="text-gray-500 text-sm mb-8 leading-relaxed font-medium">{alertConfig.msg}</p>
             <button
               onClick={() => setAlertConfig({ ...alertConfig, show: false })}
-              className="w-full py-5 bg-[#302782] text-[#FFFFFF] rounded-[20px] font-bold text-xl hover:bg-opacity-90 transition-colors shadow-[0_8px_20px_-8px_rgba(48,39,130,0.4)]"
+              className="w-full py-4 bg-[#302782] text-white rounded-xl font-bold text-base active:scale-95 transition-all"
             >
               รับทราบ
             </button>
@@ -219,6 +203,5 @@ const Calendar = () => {
     </div>
   );
 };
-
 
 export default Calendar;

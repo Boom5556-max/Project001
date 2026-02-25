@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-// ✨ เพิ่ม Check และ AlertCircle เข้ามาใช้งานกับ Popup
-import { X, Save, UserCheck, ChevronDown, Check, AlertCircle } from "lucide-react";
+import { X, Save, UserCheck, ChevronDown, Check, AlertCircle, Mail, User } from "lucide-react";
 import Button from "../common/Button.jsx";
 
-// ✨ รับ showAlert ผ่าน props
 const UserFormModal = ({ user, onClose, onSave, showAlert }) => {
   const [formData, setFormData] = useState({
     user_id: user?.user_id || "",
@@ -18,12 +16,11 @@ const UserFormModal = ({ user, onClose, onSave, showAlert }) => {
     e.preventDefault();
     const result = await onSave(formData.user_id, formData);
     
-    // ✨ เปลี่ยนจาก alert() เป็น showAlert()
     if (result.success) {
       onClose();
       showAlert(
         "บันทึกข้อมูลสำเร็จ",
-        <Check size={50} className="text-green-500" />,
+        <Check size={50} className="text-[#B2BB1E]" />,
         null,
         false
       );
@@ -32,56 +29,66 @@ const UserFormModal = ({ user, onClose, onSave, showAlert }) => {
         "เกิดข้อผิดพลาด: " + (result.message || "ไม่สามารถบันทึกข้อมูลได้"),
         <AlertCircle size={50} className="text-red-500" />,
         null,
-        false
+        false,
+        "danger"
       );
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 font-sans">
+    <div className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-[#302782]/30 backdrop-blur-md p-0 sm:p-4 font-sans">
       <form 
         onSubmit={handleSubmit} 
-        className="bg-[#FFFFFF] w-full max-w-lg rounded-[32px] md:rounded-[40px] p-6 md:p-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)] border border-white flex flex-col max-h-[95vh]"
+        className="bg-[#FFFFFF] w-full max-w-lg rounded-t-[40px] sm:rounded-[40px] p-8 md:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-white flex flex-col max-h-[92vh] animate-in slide-in-from-bottom sm:zoom-in duration-300"
       >
         {/* Header Section */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-[#302782] mb-1">
-              {user ? 'แก้ไขข้อมูลผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
+            <h2 className="text-2xl md:text-3xl font-black text-[#302782] tracking-tight">
+              {user ? 'แก้ไขโปรไฟล์' : 'เพิ่มผู้ใช้งานใหม่'}
             </h2>
-            <p className="text-xs md:text-sm font-medium text-gray-400">กรุณาระบุข้อมูลรายละเอียดให้ครบถ้วน</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="h-1 w-8 bg-[#B2BB1E] rounded-full" />
+              <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                Account Management
+              </p>
+            </div>
           </div>
           <button 
             type="button" 
             onClick={onClose} 
-            className="p-2.5 bg-gray-50 rounded-full text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            className="p-3 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-2xl text-gray-400 transition-all active:scale-90"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        {/* Form Fields */}
-        <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-grow mb-6">
-          {/* User ID */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-500 ml-1">รหัสประจำตัว (User ID)</label>
-            <input 
-              disabled={!!user}
-              className="w-full p-3 md:p-3.5 bg-gray-50 border border-gray-200 rounded-[16px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all disabled:opacity-50 placeholder:text-gray-300 text-sm md:text-base" 
-              value={formData.user_id} 
-              onChange={e => setFormData({...formData, user_id: e.target.value})} 
-              placeholder="ตัวอย่างเช่น T001 หรือ S001"
-              required 
-            />
+        {/* Form Fields Space */}
+        <div className="space-y-5 overflow-y-auto pr-2 custom-scrollbar flex-grow mb-8 px-1">
+          
+          {/* User ID - High Priority Field */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">รหัสประจำตัว (User ID)</label>
+            <div className="relative group">
+              <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#B2BB1E] transition-colors" />
+              <input 
+                disabled={!!user}
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-[#B2BB1E] font-bold text-[#302782] transition-all disabled:opacity-60 text-base" 
+                value={formData.user_id} 
+                onChange={e => setFormData({...formData, user_id: e.target.value})} 
+                placeholder="T001 หรือ S001"
+                required 
+              />
+            </div>
           </div>
 
-          {/* Title & Name Group */}
-          <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-4 flex flex-col gap-1.5">
-              <label className="text-[13px] font-bold text-gray-500 ml-1">คำนำหน้า</label>
+          {/* Title & Name Grid */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-4 flex flex-col gap-2">
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">คำนำหน้า</label>
               <div className="relative">
                 <select 
-                  className="w-full p-3 md:p-3.5 bg-gray-50 border border-gray-200 rounded-[16px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] font-bold text-[#302782] cursor-pointer appearance-none transition-all text-sm md:text-base" 
+                  className="w-full p-4 bg-gray-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-[#B2BB1E] font-bold text-[#302782] cursor-pointer appearance-none transition-all text-base" 
                   value={formData.title} 
                   onChange={e => setFormData({...formData, title: e.target.value})}
                   required
@@ -93,76 +100,97 @@ const UserFormModal = ({ user, onClose, onSave, showAlert }) => {
                   <option value="ดร.">ดร.</option>
                   <option value="ผศ.ดร.">ผศ.ดร.</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" size={18} />
               </div>
             </div>
-            <div className="col-span-8 flex flex-col gap-1.5">
-              <label className="text-[13px] font-bold text-gray-500 ml-1">ชื่อ</label>
+            <div className="col-span-8 flex flex-col gap-2">
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">ชื่อจริง</label>
               <input 
-                className="w-full p-3 md:p-3.5 bg-gray-50 border border-gray-200 rounded-[16px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all text-sm md:text-base" 
+                className="w-full p-4 bg-gray-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-[#B2BB1E] font-bold text-[#302782] transition-all text-base" 
                 value={formData.name} 
                 onChange={e => setFormData({...formData, name: e.target.value})} 
+                placeholder="กรอกชื่อจริง"
                 required 
               />
             </div>
           </div>
 
           {/* Surname */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-500 ml-1">นามสกุล</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">นามสกุล</label>
             <input 
-              className="w-full p-3 md:p-3.5 bg-gray-50 border border-gray-200 rounded-[16px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all text-sm md:text-base" 
+              className="w-full p-4 bg-gray-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-[#B2BB1E] font-bold text-[#302782] transition-all text-base" 
               value={formData.surname} 
               onChange={e => setFormData({...formData, surname: e.target.value})} 
+              placeholder="กรอกนามสกุล"
               required 
             />
           </div>
 
-          {/* Email */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-500 ml-1">อีเมลติดต่อ</label>
-            <input 
-              type="email" 
-              className="w-full p-3 md:p-3.5 bg-gray-50 border border-gray-200 rounded-[16px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 font-bold text-[#302782] transition-all text-sm md:text-base" 
-              value={formData.email} 
-              onChange={e => setFormData({...formData, email: e.target.value})} 
-              placeholder="example@ku.th"
-              required 
-            />
+          {/* Email with Icon */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">อีเมลติดต่อ (KU Mail)</label>
+            <div className="relative group">
+              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#B2BB1E] transition-colors" />
+              <input 
+                type="email" 
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-[20px] outline-none focus:bg-white focus:border-[#B2BB1E] font-bold text-[#302782] transition-all text-base" 
+                value={formData.email} 
+                onChange={e => setFormData({...formData, email: e.target.value})} 
+                placeholder="example@ku.th"
+                required 
+              />
+            </div>
           </div>
 
-          {/* Role selection */}
-          <div className="flex flex-col gap-1.5 pb-2">
-            <label className="text-[13px] font-bold text-gray-500 ml-1">สิทธิ์การใช้งานระบบ (Role)</label>
-            <div className="relative">
-              <select 
-                className="w-full p-3 md:p-3.5 bg-gray-50 border border-gray-200 rounded-[16px] outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] font-bold text-[#302782] appearance-none cursor-pointer transition-all text-sm md:text-base" 
-                value={formData.role} 
-                onChange={e => setFormData({...formData, role: e.target.value})}
-              >
-                <option value="teacher">อาจารย์ (Teacher)</option>
-                <option value="staff">เจ้าหน้าที่ (Staff)</option>
-              </select>
-              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                <UserCheck size={18} />
-              </div>
+          {/* Role selection with Custom Card Style */}
+          <div className="flex flex-col gap-2 pb-2">
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">สิทธิ์การเข้าถึงระบบ</label>
+            <div className="grid grid-cols-2 gap-3">
+               <RoleOption 
+                selected={formData.role === "teacher"} 
+                label="อาจารย์" 
+                value="teacher" 
+                onClick={() => setFormData({...formData, role: "teacher"})} 
+               />
+               <RoleOption 
+                selected={formData.role === "staff"} 
+                label="เจ้าหน้าที่" 
+                value="staff" 
+                onClick={() => setFormData({...formData, role: "staff"})} 
+               />
             </div>
           </div>
         </div>
 
         {/* Action Button */}
-        <div className="pt-2 flex-shrink-0">
+        <div className="flex-shrink-0">
           <Button 
             type="submit" 
-            className="w-full bg-[#302782] text-[#FFFFFF] py-4 rounded-[18px] font-bold text-lg shadow-lg shadow-[#302782]/20 hover:bg-opacity-90 transition-all border-none flex items-center justify-center gap-2"
+            variant="primary"
+            className="w-full py-5 rounded-[22px] text-lg shadow-xl shadow-[#302782]/20"
           >
-            <Save size={20} /> {user ? 'อัปเดตข้อมูล' : 'บันทึกข้อมูลผู้ใช้งาน'}
+            <Save size={20} /> 
+            <span>{user ? 'บันทึกการเปลี่ยนแปลง' : 'ยืนยันเพิ่มผู้ใช้งาน'}</span>
           </Button>
         </div>
       </form>
-
     </div>
   );
 };
+
+// Component เสริมสำหรับเลือก Role ให้ดูพรีเมียมขึ้น
+const RoleOption = ({ selected, label, onClick }) => (
+  <div 
+    onClick={onClick}
+    className={`p-4 rounded-[20px] border-2 cursor-pointer transition-all flex items-center justify-center gap-2 font-black text-sm
+      ${selected 
+        ? "border-[#B2BB1E] bg-[#B2BB1E]/5 text-[#302782]" 
+        : "border-gray-50 bg-gray-50 text-gray-400 hover:border-gray-200"}`}
+  >
+    <UserCheck size={16} className={selected ? "text-[#B2BB1E]" : "text-gray-300"} />
+    {label}
+  </div>
+);
 
 export default UserFormModal;

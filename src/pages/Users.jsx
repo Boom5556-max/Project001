@@ -13,7 +13,6 @@ const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  // 🚩 เพิ่ม state ให้รองรับ singleButton, variant และ showBg เหมือน Rooms
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
     title: "",
@@ -30,7 +29,6 @@ const Users = () => {
     setIsModalOpen(true);
   };
 
-  // 🚩 ปรับ showAlert ให้รับ parameter ครบเหมือนหน้า Rooms
   const showAlert = (title, icon, onConfirm = null, showConfirm = true, singleButton = false, variant = "primary", showBg = true) => {
     setAlertConfig({
       isOpen: true,
@@ -45,105 +43,127 @@ const Users = () => {
   };
 
   const handleDelete = async (userId) => {
-    // 1. จังหวะถามยืนยัน: ใช้สีแดง (danger) + มีวงกลมเทา
     showAlert(
       `คุณแน่ใจหรือไม่ที่จะลบผู้ใช้รายนี้?`,
-      <Trash2 size={50} />,
+      <Trash2 size={50} className="text-red-500" />,
       async () => {
         const result = await deleteUser(userId);
         setAlertConfig((prev) => ({ ...prev, isOpen: false }));
-
         setTimeout(() => {
           if (!result.success) {
-            // 2. ลบไม่สำเร็จ: ปุ่มเดียว + สีแดง + ไม่มีวงกลมเทา
-            showAlert(
-              "ลบไม่สำเร็จ: " + (result.message || "เกิดข้อผิดพลาด"),
-              null,
-              null,
-              false,
-              true,
-              "danger",
-              false
-            );
+            showAlert("ลบไม่สำเร็จ: " + (result.message || "เกิดข้อผิดพลาด"), null, null, false, true, "danger", false);
           } else {
-            // 3. ลบสำเร็จ: ปุ่มเดียว + สีน้ำเงิน + ไม่มีวงกลมเทา
-            showAlert(
-              "ลบผู้ใช้งานสำเร็จ",
-              null,
-              null,
-              false,
-              true,
-              "primary",
-              false
-            );
+            showAlert("ลบผู้ใช้งานสำเร็จ", null, null, false, true, "primary", false);
           }
         }, 150);
       },
-      true,    // showConfirm
-      false,   // singleButton
-      "danger",// variant
-      true     // showBg
+      true, false, "danger", true
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
-      <div className="p-6 pb-24 flex-grow">
-        <div className="flex items-center justify-between mb-8 max-w-4xl mx-auto">
+      
+      <div className="p-4 sm:p-6 md:p-10 pb-24 flex-grow max-w-5xl mx-auto w-full">
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="none" onClick={() => navigate(-1)} className="text-[#B2BB1E] bg-transparent shadow-none border-none p-0">
-              <ChevronLeft size={28} />
+            <Button 
+              variant="ghost" 
+              size="none" 
+              onClick={() => navigate(-1)} 
+              className="text-[#B2BB1E] bg-transparent p-1 hover:scale-110 transition-transform"
+            >
+              <ChevronLeft size={32} />
             </Button>
-            <h1 className="text-3xl font-bold text-[#302782]">จัดการผู้ใช้งาน</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#302782]">จัดการผู้ใช้งาน</h1>
           </div>
-          <Button onClick={() => openModal()} className="bg-[#B2BB1E] text-[#FFFFFF] rounded-2xl px-6 py-3 flex items-center gap-2 font-bold shadow-sm border-none hover:bg-opacity-90 transition-colors">
+
+          <Button 
+            onClick={() => openModal()} 
+            className="w-full sm:w-auto bg-[#B2BB1E] text-white rounded-2xl px-6 py-3.5 flex items-center justify-center gap-2 font-black shadow-lg hover:bg-[#302782] transition-all active:scale-95"
+          >
             <Plus size={20} /> เพิ่มผู้ใช้ใหม่
           </Button>
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        {/* Content Section */}
+        <div className="w-full">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="w-10 h-10 border-4 border-[#302782] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-gray-500 font-bold">กำลังดึงข้อมูลผู้ใช้งาน...</p>
+            <div className="flex flex-col items-center justify-center py-32 gap-4">
+              <div className="w-12 h-12 border-4 border-[#302782] border-t-[#B2BB1E] rounded-full animate-spin"></div>
+              <p className="text-gray-400 font-bold animate-pulse">กำลังดึงข้อมูลผู้ใช้งาน...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {users.map((u) => (
-                <div key={u.user_id} className="bg-[#FFFFFF] p-6 rounded-[35px] shadow-sm border border-gray-100 flex justify-between items-center">
-                  <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 bg-gray-50 rounded-[24px] flex items-center justify-center text-[#302782] border border-gray-100">
-                      <UserCog size={32} />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-gray-500">{u.title}</span>
-                        <h3 className="text-xl font-bold text-[#302782] leading-none">{u.name} {u.surname}</h3>
+            <div className="grid grid-cols-1 gap-4 sm:gap-6">
+              {users.length > 0 ? (
+                users.map((u) => (
+                  <div 
+                    key={u.user_id} 
+                    className="bg-white p-5 sm:p-6 rounded-[30px] sm:rounded-[35px] shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-4 sm:gap-5 w-full">
+                      {/* User Icon - ซ่อนในมือถือขนาดเล็กมากถ้าต้องการประหยัดพื้นที่ */}
+                      <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 bg-gray-50 rounded-2xl sm:rounded-[24px] flex items-center justify-center text-[#302782] border border-gray-100">
+                        <UserCog size={28} className="sm:w-8 sm:h-8" />
                       </div>
-                      <p className="text-gray-500 font-medium text-xs flex items-center gap-1 mt-1.5">
-                        <Mail size={12}/> {u.email}
-                      </p>
-                      <span className="inline-block mt-2 px-3 py-1 rounded-full text-[10px] bg-gray-100 text-[#302782] font-bold">
-                        {u.role}
-                      </span>
+                      
+                      <div className="flex-grow min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-2">
+                          <span className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-tighter">
+                            {u.title}
+                          </span>
+                          <h3 className="text-lg sm:text-xl font-black text-[#302782] truncate">
+                            {u.name} {u.surname}
+                          </h3>
+                        </div>
+                        
+                        <p className="text-gray-400 font-bold text-xs flex items-center gap-1.5 mt-1 truncate">
+                          <Mail size={14} className="shrink-0 text-[#B2BB1E]" /> 
+                          <span className="truncate">{u.email}</span>
+                        </p>
+                        
+                        <div className="mt-2.5">
+                          <span className="inline-block px-3 py-1 rounded-full text-[10px] bg-[#302782]/5 text-[#302782] font-black uppercase tracking-widest border border-[#302782]/10">
+                            {u.role}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 w-full sm:w-auto justify-end sm:justify-start pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-50 mt-1 sm:mt-0">
+                      <button 
+                        onClick={() => openModal(u)} 
+                        className="flex-1 sm:flex-none p-3 bg-gray-50 sm:bg-white border border-gray-100 rounded-xl sm:rounded-2xl text-gray-400 hover:text-[#302782] hover:border-[#302782]/20 transition-all active:scale-90 flex justify-center items-center" 
+                        title="แก้ไข"
+                      >
+                        <Edit3 size={20} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(u.user_id)} 
+                        className="flex-1 sm:flex-none p-3 bg-gray-50 sm:bg-white border border-gray-100 rounded-xl sm:rounded-2xl text-gray-400 hover:text-red-500 hover:border-red-100 transition-all active:scale-90 flex justify-center items-center" 
+                        title="ลบ"
+                      >
+                        <Trash2 size={20} />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => openModal(u)} className="p-3 bg-[#FFFFFF] border border-gray-200 rounded-2xl text-gray-400 hover:text-[#302782] transition-colors" title="แก้ไข">
-                      <Edit3 size={22} />
-                    </button>
-                    <button onClick={() => handleDelete(u.user_id)} className="p-3 bg-[#FFFFFF] border border-gray-200 rounded-2xl text-gray-400 hover:text-red-600 transition-colors" title="ลบ">
-                      <Trash2 size={22} />
-                    </button>
-                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[40px] border-2 border-dashed border-gray-100">
+                  <UserCog size={48} className="text-gray-200 mb-4" />
+                  <p className="text-gray-400 font-bold">ไม่พบข้อมูลผู้ใช้งานในระบบ</p>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
       </div>
 
+      {/* Modals remain the same but ensure they are responsive inside their own components */}
       {isModalOpen && (
         <UserFormModal 
           user={editingUser} 
@@ -153,7 +173,6 @@ const Users = () => {
         />
       )}
 
-      {/* 🚩 แสดง ActionModal พร้อมส่ง Props ครบชุดเหมือน Rooms */}
       {alertConfig.isOpen && (
         <ActionModal
           icon={alertConfig.icon}

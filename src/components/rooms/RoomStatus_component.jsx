@@ -6,163 +6,177 @@ import {
   Clock,
   Users,
   FileText,
-  ChevronLeft
+  ChevronLeft,
+  CalendarDays
 } from "lucide-react";
 import Button from "../common/Button.jsx";
 
-// 1. หน้า Loading (Professional & Clean)
+// 1. LoadingState: หน้าดาวน์โหลดข้อมูล (ใช้ Blur Background และ Micro-animation)
 export const LoadingState = () => (
   <div className="h-screen flex flex-col items-center justify-center bg-[#F8F9FA] font-sans">
-    <div className="w-16 h-16 border-[5px] border-[#302782]/10 border-t-[#302782] rounded-full animate-spin mb-6"></div>
-    <p className="text-xl font-bold text-[#302782]">
-      กำลังซิงค์ข้อมูล...
-    </p>
+    <div className="relative flex items-center justify-center mb-8">
+      <div className="w-20 h-20 border-[6px] border-[#302782]/10 rounded-full"></div>
+      <div className="absolute w-20 h-20 border-[6px] border-t-[#302782] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+      <CalendarDays className="absolute text-[#302782]/40" size={24} />
+    </div>
+    <h2 className="text-xl font-black text-[#302782] tracking-tight">กำลังซิงค์ข้อมูล...</h2>
+    <p className="text-gray-400 text-sm font-bold mt-2">โปรดรอสักครู่ ระบบกำลังดึงตารางเวลาล่าสุด</p>
   </div>
 );
 
-// 2. หน้า Error (Formal Style)
+// 2. ErrorState: หน้าแจ้งเตือนข้อผิดพลาด
 export const ErrorState = ({ message, onBack }) => (
-  <div className="h-screen flex flex-col items-center justify-center p-10 bg-[#FFFFFF] text-center font-sans">
-    <div className="w-24 h-24 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8">
-      <AlertCircle size={48} />
+  <div className="h-screen flex flex-col items-center justify-center p-8 bg-[#FFFFFF] text-center font-sans">
+    <div className="w-24 h-24 bg-red-50 text-red-500 rounded-[32px] flex items-center justify-center mx-auto mb-8 rotate-3 shadow-lg shadow-red-100">
+      <AlertCircle size={48} strokeWidth={2.5} />
     </div>
-    <h2 className="text-3xl font-bold text-[#302782] mb-4">
-      เกิดข้อผิดพลาด
-    </h2>
-    <p className="text-lg font-medium text-gray-400 mb-10 max-w-sm mx-auto">{message}</p>
+    <h2 className="text-3xl font-black text-[#302782] mb-3 tracking-tight">เกิดข้อผิดพลาด</h2>
+    <p className="text-base sm:text-lg font-bold text-gray-400 mb-12 max-w-sm mx-auto leading-relaxed">
+      {message || "ขออภัย ไม่สามารถเข้าถึงข้อมูลได้ในขณะนี้"}
+    </p>
     <Button
       onClick={onBack}
       variant="secondary"
-      className="w-full max-w-xs py-5 rounded-[20px] text-lg font-bold"
+      className="w-full max-w-xs py-5 rounded-[22px] text-lg font-black shadow-xl"
     >
-      กลับไปหน้าสแกน
+      <ChevronLeft size={20} className="mr-2" />
+      <span>กลับไปหน้าสแกน</span>
     </Button>
   </div>
 );
 
-// 🚩 ส่วนที่ 1: Current Session
+// 3. CurrentBookingCard: การ์ดสถานะปัจจุบัน (เน้น Impact)
 export const CurrentBookingCard = ({ item, isAvailable, capacity }) => (
   <div
-    className={`rounded-[40px] p-6 sm:p-10 border transition-all duration-300 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] ${
+    className={`rounded-[40px] p-6 sm:p-10 border-2 transition-all duration-500 shadow-[0_15px_45px_-15px_rgba(0,0,0,0.08)] ${
       !isAvailable
         ? "bg-[#FFFFFF] border-red-100"
-        : "bg-[#FFFFFF] border-gray-100"
-    }`}
+        : "bg-[#FFFFFF] border-[#B2BB1E]/20"
+    } animate-in fade-in zoom-in-95 duration-500`}
   >
-    <div className="flex justify-between items-center mb-8 sm:mb-10">
-      <h3 className="font-bold text-xs text-gray-400">
-        สถานะการใช้งานปัจจุบัน
-      </h3>
+    <div className="flex justify-between items-start mb-8 sm:mb-12">
+      <div>
+        <h3 className="font-black text-[10px] sm:text-xs text-gray-400 uppercase tracking-[0.2em] mb-1">
+          Current Status
+        </h3>
+        <p className={`text-xl sm:text-2xl font-black ${!isAvailable ? "text-red-500" : "text-[#B2BB1E]"}`}>
+          {!isAvailable ? "มีการใช้งานอยู่" : "พร้อมสำหรับการจอง"}
+        </p>
+      </div>
       <div
-        className={`px-4 sm:px-6 py-2 rounded-full text-[#FFFFFF] text-[11px] sm:text-sm font-bold transition-all ${
+        className={`px-5 py-2.5 rounded-2xl text-[#FFFFFF] text-[11px] sm:text-xs font-black uppercase tracking-widest transition-all ${
           !isAvailable
             ? "bg-red-500 shadow-lg shadow-red-200"
             : "bg-[#B2BB1E] shadow-lg shadow-[#B2BB1E]/20"
         }`}
       >
-        {!isAvailable ? "ไม่ว่าง (กำลังใช้งาน)" : "ว่างพร้อมใช้งาน"}
+        {!isAvailable ? "Occupied" : "Available"}
       </div>
     </div>
 
     {!isAvailable && item ? (
-      <div className="space-y-5 sm:space-y-6">
-        <div className="flex items-center gap-5">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-50 rounded-[20px] sm:rounded-[24px] flex items-center justify-center text-[#302782] border border-gray-100 flex-shrink-0">
-            <Clock size={28} className="sm:w-[32px] sm:h-[32px]" />
+      <div className="space-y-6 sm:space-y-8 animate-in slide-in-from-bottom-4 duration-700">
+        {/* เวลา */}
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#302782]/5 rounded-[28px] flex items-center justify-center text-[#302782] border border-[#302782]/5 flex-shrink-0">
+            <Clock size={32} strokeWidth={2.5} className="sm:w-10 sm:h-10" />
           </div>
           <div>
-            <p className="text-xs font-bold text-gray-400 mb-1">
-              ช่วงเวลาที่จอง
-            </p>
-            <p className="text-xl sm:text-2xl font-bold text-[#302782]">
-              {item.start_time} - {item.end_time} น.
+            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">ช่วงเวลาที่จอง</p>
+            <p className="text-2xl sm:text-4xl font-black text-[#302782] tracking-tight">
+              {item.start_time} - {item.end_time} <span className="text-lg text-gray-300 ml-1 font-bold">น.</span>
             </p>
           </div>
         </div>
 
-        {/* ✨ แก้ไขเลย์เอาต์ตรงนี้: เปลี่ยนจาก grid-cols-2 เป็น flex เพื่อแบ่งสัดส่วนพื้นที่ใหม่ */}
-        <div className="flex gap-3 sm:gap-5">
-          
-          {/* กล่องชื่อ: ให้พื้นที่กว้างกว่า (flex-[2]) และบังคับบรรทัดเดียว */}
-          <div className="flex-[2] min-w-0 bg-gray-50/50 p-4 sm:p-5 rounded-[24px] sm:rounded-[28px] border border-gray-100">
-            <p className="text-[10px] sm:text-[11px] font-bold text-gray-400 mb-2">
-              ผู้รับผิดชอบ
-            </p>
-            <div className="flex items-center gap-2">
-              <User size={16} className="text-[#B2BB1E] flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
-              <p className="text-sm sm:text-base font-bold text-[#302782] whitespace-nowrap overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {/* ผู้จอง & จำนวนคน */}
+        <div className="flex gap-3 sm:gap-6">
+          <div className="flex-[2] min-w-0 bg-gray-50/70 p-5 rounded-[28px] border border-gray-100 group transition-all">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">ผู้รับผิดชอบ</p>
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-white rounded-lg shadow-sm">
+                <User size={16} className="text-[#B2BB1E]" />
+              </div>
+              <p className="text-sm sm:text-lg font-black text-[#302782] truncate">
                 {item.full_name}
               </p>
             </div>
           </div>
 
-          {/* กล่องจำนวนคน: ให้พื้นที่แคบกว่า (flex-[1]) */}
-          <div className="flex-[1] min-w-0 bg-gray-50/50 p-4 sm:p-5 rounded-[24px] sm:rounded-[28px] border border-gray-100">
-            <p className="text-[10px] sm:text-[11px] font-bold text-gray-400 mb-2">
-              จำนวนคน
-            </p>
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-[#B2BB1E] flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
-              <p className="text-sm sm:text-base font-bold text-[#302782] whitespace-nowrap">
-                {item.student_count || capacity || 0} คน
+          <div className="flex-[1] min-w-0 bg-gray-50/70 p-5 rounded-[28px] border border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">จำนวนคน</p>
+            <div className="flex items-center gap-3 justify-center sm:justify-start">
+              <Users size={16} className="text-[#B2BB1E]" />
+              <p className="text-sm sm:text-lg font-black text-[#302782]">
+                {item.student_count || capacity || 0}
               </p>
             </div>
           </div>
-
         </div>
 
-        <div className="bg-[#302782] p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] text-[#FFFFFF] shadow-lg shadow-[#302782]/20">
-          <p className="text-[10px] sm:text-[11px] font-bold text-[#FFFFFF]/50 mb-2 flex items-center gap-2">
-            <FileText size={14} /> วัตถุประสงค์การใช้งาน
+        {/* วัตถุประสงค์ (ใช้พื้นหลังเข้มเพื่อความเด่น) */}
+        <div className="bg-[#302782] p-6 sm:p-8 rounded-[32px] text-[#FFFFFF] shadow-[0_20px_40px_-15px_rgba(48,39,130,0.3)] relative overflow-hidden group">
+          <FileText size={80} className="absolute -right-4 -bottom-4 text-white/5 rotate-12 transition-transform group-hover:scale-110" />
+          <p className="text-[10px] font-black text-[#FFFFFF]/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+             วัตถุประสงค์การใช้งาน
           </p>
-          <p className="text-sm sm:text-base font-medium leading-relaxed">
+          <p className="text-base sm:text-xl font-bold leading-relaxed relative z-10 italic">
             "{item.purpose || "ไม่ระบุวัตถุประสงค์"}"
           </p>
         </div>
       </div>
     ) : (
-      <div className="text-center py-10">
-        <p className="text-[#B2BB1E] text-3xl sm:text-4xl font-bold mb-3 tracking-tight">
-          ห้องว่างพร้อมใช้งาน
+      <div className="text-center py-12">
+        <div className="w-20 h-20 bg-[#B2BB1E]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CalendarDays size={40} className="text-[#B2BB1E]" />
+        </div>
+        <p className="text-[#B2BB1E] text-3xl sm:text-4xl font-black mb-3 tracking-tighter italic">
+          READY FOR BOOKING
         </p>
-        <p className="text-xs sm:text-sm font-bold text-gray-400">
-          รองรับได้สูงสุด: {capacity || "-"} ที่นั่ง
+        <p className="text-sm font-black text-gray-400 uppercase tracking-widest">
+          Max Capacity: {capacity || "-"} Seats
         </p>
       </div>
     )}
   </div>
 );
 
-// 🚩 รายการตารางเวลาส่วนที่ 2: Timeline
+// 4. ScheduleItem: รายการ Timeline ตารางเวลา
 export const ScheduleItem = ({ item, capacity }) => (
-  <div className="flex items-center gap-4 sm:gap-6 p-5 sm:p-6 bg-[#FFFFFF] rounded-[28px] sm:rounded-[32px] border border-gray-100 transition-all hover:border-[#B2BB1E]/30 hover:shadow-xl group">
-    {/* ฝั่งเวลา */}
-    <div className="flex flex-col items-center min-w-[80px] sm:min-w-[100px] border-r border-gray-100 pr-4 sm:pr-6">
-      <span className="text-sm sm:text-base font-bold text-[#302782]">
+  <div className="flex items-center gap-4 sm:gap-8 p-5 sm:p-7 bg-[#FFFFFF] rounded-[32px] border border-gray-100 transition-all hover:border-[#B2BB1E]/30 hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.1)] group">
+    {/* Time Slot */}
+    <div className="flex flex-col items-center min-w-[85px] sm:min-w-[110px] border-r-2 border-dashed border-gray-100 pr-5 sm:pr-8">
+      <span className="text-lg sm:text-xl font-black text-[#302782]">
         {item.start_time}
       </span>
-      <span className="text-xs sm:text-sm font-bold text-gray-400 mt-1">
+      <div className="h-4 w-[2px] bg-gray-100 my-1 rounded-full" />
+      <span className="text-sm sm:text-base font-bold text-gray-400">
         {item.end_time}
       </span>
     </div>
 
-    {/* ฝั่งรายละเอียด */}
-    <div className="flex-grow overflow-hidden text-left">
-      <p className="text-base sm:text-lg font-bold text-[#302782] break-words mb-2">
-        {item.purpose || "รายการจอง"}
-      </p>
-      {/* ✨ แกไขตรงนี้ให้รองรับการแสดงชื่อยาวๆ บรรทัดเดียว */}
-      <div className="flex flex-wrap gap-3 sm:gap-4">
-        <span className="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-gray-400 min-w-0">
-          <User size={14} className="text-[#B2BB1E] flex-shrink-0 sm:w-[16px] sm:h-[16px]" />
-          <span className="whitespace-nowrap overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {item.full_name || item.name || `${item.first_name || "ไม่ระบุชื่อ"} ${item.last_name || ""}`}
+    {/* Booking Info */}
+    <div className="flex-grow min-w-0">
+      <h4 className="text-base sm:text-xl font-black text-[#302782] mb-3 truncate group-hover:text-[#B2BB1E] transition-colors">
+        {item.purpose || "รายการจองทั่วไป"}
+      </h4>
+      
+      <div className="flex flex-wrap items-center gap-y-2 gap-x-5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <User size={14} className="text-[#B2BB1E]" />
+          </div>
+          <p className="text-xs sm:text-sm font-bold text-gray-500 truncate max-w-[150px] sm:max-w-none">
+            {item.full_name || `${item.first_name} ${item.last_name}`}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100/50">
+          <Users size={14} className="text-[#302782]" />
+          <span className="text-[10px] sm:text-xs font-black text-[#302782] uppercase">
+            {capacity || 0} Seats
           </span>
-        </span>
-        <span className="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-[#302782] whitespace-nowrap">
-          <Users size={14} className="text-[#B2BB1E] flex-shrink-0 sm:w-[16px] sm:h-[16px]" />
-          {capacity || 0} ที่นั่ง
-        </span>
+        </div>
       </div>
     </div>
   </div>

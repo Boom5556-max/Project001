@@ -23,7 +23,7 @@ const QrFirstpage = () => {
         <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-3 backdrop-blur-sm shadow-inner">
           <QrCode size={32} className="text-white" />
         </div>
-        <h1 className="text-2xl font-bold tracking-wide">Smart Room Check</h1>
+        <h1 className="text-2xl font-bold tracking-wide">Room Check</h1>
         <p className="text-white/70 text-sm mt-1 text-center">
           สแกน QR Code หน้าห้องเพื่อดูตารางการใช้งาน
         </p>

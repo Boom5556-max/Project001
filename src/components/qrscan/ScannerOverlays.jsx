@@ -2,44 +2,70 @@ import React from 'react';
 import { QrCode, Loader2, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import Button from "../common/Button.jsx";
 
-// 1. SuccessOverlay: แสดงเมื่อสแกนสำเร็จ (เน้นความชัดเจนและพรีเมียม)
+// 1. SuccessOverlay: แสดงเมื่อสแกนสำเร็จ
 export const SuccessOverlay = () => (
-  <div className="absolute inset-0 bg-[#B2BB1E]/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center z-[100] transition-all duration-300">
-    <div className="bg-[#FFFFFF] p-6 rounded-[32px] mb-6 text-[#302782] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)]">
-      <CheckCircle2 size={64} strokeWidth={2.5} />
+  <div className="absolute inset-0 bg-[#B2BB1E]/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center z-[100] animate-in fade-in duration-300">
+    <div className="bg-white p-6 rounded-[32px] mb-8 text-[#302782] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)] animate-in zoom-in duration-500 delay-150">
+      <CheckCircle2 size={72} strokeWidth={2.5} className="animate-bounce-short" />
     </div>
-    <h3 className="text-[#302782] font-bold text-3xl">ตรวจสอบสำเร็จ</h3>
-    <p className="text-[#302782]/70 font-medium mt-2">กำลังนำคุณไปยังหน้ารายละเอียด...</p>
-  </div>
-);
-
-// 2. LoadingOverlay: แสดงขณะประมวลผล (เรียบหรู ไม่บังจอทั้งหมด)
-export const LoadingOverlay = () => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#302782]/40 backdrop-blur-md text-[#FFFFFF] z-[110]">
-    <div className="bg-[#FFFFFF] p-5 rounded-[24px] mb-4 shadow-xl">
-      <Loader2 className="animate-spin text-[#302782]" size={32} />
-    </div>
-    <p className="text-sm font-bold tracking-widest text-white drop-shadow-md">กำลังประมวลผล...</p>
-  </div>
-);
-
-// 3. CameraErrorOverlay: แสดงเมื่อกล้องมีปัญหา (ใช้โทนสีที่ดูสุภาพ)
-export const CameraErrorOverlay = ({ message }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/95 p-10 text-center z-[50]">
-    <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-6 text-gray-400">
-      <AlertCircle size={40} />
-    </div>
-    <p className="text-[#FFFFFF] text-lg font-bold mb-8 leading-relaxed max-w-xs">
-      {message || "ไม่สามารถเปิดใช้งานกล้องได้"}
+    <h3 className="text-[#302782] font-black text-3xl sm:text-4xl tracking-tight">
+      ตรวจพบข้อมูลห้อง
+    </h3>
+    <p className="text-[#302782]/80 font-bold mt-3 text-lg">
+      กำลังนำคุณไปที่ปฏิทิน...
     </p>
+
+    <style jsx>{`
+      @keyframes bounce-short {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .animate-bounce-short {
+        animation: bounce-short 1s ease-in-out infinite;
+      }
+    `}</style>
+  </div>
+);
+
+// 2. LoadingOverlay: แสดงขณะประมวลผล
+export const LoadingOverlay = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#302782]/60 backdrop-blur-sm text-white z-[110] animate-in fade-in duration-200">
+    <div className="relative flex items-center justify-center">
+      {/* วงแหวน Loading สองชั้นให้ดูมีมิติ */}
+      <div className="w-20 h-20 border-4 border-white/20 rounded-full"></div>
+      <div className="absolute w-20 h-20 border-4 border-t-white border-transparent rounded-full animate-spin"></div>
+      <Loader2 className="absolute text-white/40" size={24} />
+    </div>
+    <p className="mt-6 text-sm font-black tracking-[0.2em] uppercase opacity-90">
+      Processing
+    </p>
+  </div>
+);
+
+// 3. CameraErrorOverlay: แสดงเมื่อกล้องมีปัญหา
+export const CameraErrorOverlay = ({ message }) => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-lg p-10 text-center z-[150]">
+    <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-8 text-red-400 border border-white/10 rotate-3">
+      <AlertCircle size={44} strokeWidth={2.5} />
+    </div>
+    
+    <h3 className="text-white text-2xl font-black mb-3">เข้าถึงกล้องไม่ได้</h3>
+    <p className="text-gray-400 text-base font-medium mb-10 leading-relaxed max-w-[260px] mx-auto">
+      {message || "โปรดตรวจสอบสิทธิ์การเข้าถึงกล้องในการตั้งค่าเบราว์เซอร์ของคุณ"}
+    </p>
+    
     <Button 
       variant="primary" 
-      size="md" 
+      size="lg" 
       onClick={() => window.location.reload()}
-      className="bg-[#B2BB1E] text-[#FFFFFF] px-10 py-4 rounded-[18px] font-bold shadow-lg"
+      className="w-full max-w-[220px] shadow-[0_15px_30px_-10px_rgba(178,187,30,0.4)]"
     >
-      <RefreshCw size={20} className="mr-2" />
-      <span>ลองใหม่อีกครั้ง</span>
+      <RefreshCw size={20} />
+      <span>รีเฟรชหน้าเว็บ</span>
     </Button>
+    
+    <p className="mt-8 text-gray-500 text-xs font-bold uppercase tracking-widest">
+      KU Booking System
+    </p>
   </div>
 );

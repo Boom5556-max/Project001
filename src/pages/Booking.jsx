@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { X, ChevronDown } from "lucide-react";
+import { X, ChevronDown, Calendar, Clock, Edit3 } from "lucide-react";
 import Button from "../components/common/Button.jsx";
 import { useBookingLogic } from "../hooks/useBooking.js";
 import { FormField } from "../components/common/FormField.jsx";
@@ -21,33 +21,34 @@ const BookingRoom = () => {
   } = useBookingLogic(id);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4 md:p-8 font-sans">
-      <div className="bg-[#FFFFFF] w-full max-w-lg rounded-[40px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] overflow-hidden relative border border-gray-100">
+    <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center p-0 sm:p-4 md:p-8 font-sans">
+      {/* Container: เต็มจอในมือถือ, เป็น Card ในจอใหญ่ */}
+      <div className="bg-white w-full max-w-xl min-h-screen sm:min-h-0 sm:rounded-[32px] shadow-2xl overflow-hidden relative border border-gray-100 transition-all">
+        
         {/* Header Section */}
-        <div className="px-10 pt-10 pb-6 flex justify-between items-start border-b border-gray-50">
+        <div className="px-6 py-8 sm:px-10 sm:pt-10 sm:pb-6 flex justify-between items-center border-b border-gray-50 bg-white sticky top-0 z-10">
           <div>
-            <h1 className="text-3xl font-bold text-[#302782] mb-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#302782] tracking-tight">
               จองห้องเรียน
             </h1>
-            <p className="text-sm font-medium text-gray-400">
-              กรุณากรอกรายละเอียดด้านล่างเพื่อดำเนินการ
+            <p className="text-xs sm:text-sm font-medium text-gray-400 mt-1">
+              กรุณาระบุรายละเอียดการเข้าใช้งาน
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="none"
+          <button
             onClick={() => navigate(-1)}
-            className="p-3 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"
+            className="p-2.5 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-full text-gray-400 transition-all duration-200"
           >
-            <X size={20} />
-          </Button>
+            <X size={22} />
+          </button>
         </div>
 
         {/* Form Section */}
-        <form onSubmit={handleSubmit} className="p-10 space-y-6">
-          {/* 1. เลือกห้อง (ห้องที่ซ่อมจะไม่โผล่มาเพราะถูกกรองจาก Hook แล้ว) */}
-          <FormField label="เลือกห้อง">
-            <div className="relative">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-6 sm:space-y-8">
+          
+          {/* 1. เลือกห้อง */}
+          <FormField label="ห้องที่ต้องการจอง" icon={<Edit3 size={16} />}>
+            <div className="relative group">
               <select
                 required
                 value={formData.room_id}
@@ -55,30 +56,26 @@ const BookingRoom = () => {
                   setFormData({ ...formData, room_id: e.target.value });
                   setShowStatus(false);
                 }}
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 appearance-none text-[#302782] font-bold transition-all"
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 px-5 outline-none focus:bg-white focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/5 appearance-none text-[#302782] font-bold transition-all cursor-pointer text-base"
               >
-                <option value="" disabled>
-                  กรุณาเลือกห้อง
-                </option>
+                <option value="" disabled>เลือกห้องเรียน</option>
                 {rooms.map((r) => (
                   <option key={r.room_id} value={r.room_id}>
-                    {r.room_type} | {r.room_id}
+                    {r.room_type} — {r.room_id}
                   </option>
                 ))}
               </select>
-              <ChevronDown
-                className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-                size={20}
-              />
+              <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-[#B2BB1E] transition-colors" size={20} />
             </div>
           </FormField>
 
           {/* 2. วันที่ */}
-          <FormField label="วันที่">
+          <FormField label="วันที่เข้าใช้งาน" icon={<Calendar size={16} />}>
             <input
               type="date"
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 text-[#302782] font-medium transition-all"
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 px-5 outline-none focus:bg-white focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/5 text-[#302782] font-semibold transition-all text-base"
               value={formData.date}
               onChange={(e) => {
                 setFormData({ ...formData, date: e.target.value });
@@ -87,88 +84,69 @@ const BookingRoom = () => {
             />
           </FormField>
 
-          {/* 3. เวลา */}
-          <div className="grid grid-cols-2 gap-5">
-            <FormField label="เวลาเริ่ม">
+          {/* 3. เวลา (Responsive Grid) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <FormField label="เวลาเริ่ม" icon={<Clock size={16} />}>
               <input
                 type="time"
                 required
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 px-5 outline-none focus:bg-white focus:border-[#B2BB1E] text-[#302782] font-semibold transition-all"
                 value={formData.start_time}
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 text-[#302782] font-medium transition-all"
-                onChange={(e) =>
-                  setFormData({ ...formData, start_time: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
               />
             </FormField>
-            <FormField label="เวลาสิ้นสุด">
+            <FormField label="เวลาสิ้นสุด" icon={<Clock size={16} />}>
               <input
                 type="time"
                 required
+                className="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 px-5 outline-none focus:bg-white focus:border-[#B2BB1E] text-[#302782] font-semibold transition-all"
                 value={formData.end_time}
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-5 outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 text-[#302782] font-medium transition-all"
-                onChange={(e) =>
-                  setFormData({ ...formData, end_time: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
               />
             </FormField>
           </div>
 
           {/* 4. วัตถุประสงค์ */}
-          <FormField label="วัตถุประสงค์">
+          <FormField label="วัตถุประสงค์การใช้งาน">
             <textarea
               rows="3"
-              placeholder="ระบุวัตถุประสงค์การใช้งาน..."
+              placeholder="เช่น ติวสอบ, ประชุมโปรเจกต์..."
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-[24px] py-4 px-5 outline-none focus:bg-[#FFFFFF] focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 text-[#302782] resize-none font-medium transition-all leading-relaxed"
+              className="w-full bg-gray-50 border-2 border-transparent rounded-2xl py-4 px-5 outline-none focus:bg-white focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/5 text-[#302782] resize-none font-medium transition-all leading-relaxed"
               value={formData.purpose}
-              onChange={(e) =>
-                setFormData({ ...formData, purpose: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
             ></textarea>
           </FormField>
 
-          {/* 5. ปุ่มส่งคำขอ */}
-          <div className="pt-2">
+          {/* Action Button */}
+          <div className="pt-4 pb-8 sm:pb-0">
             <Button
               type="submit"
-              variant="secondary"
               isLoading={isLoading}
               disabled={isLoading}
-              className="w-full py-4 text-lg font-bold rounded-[20px] shadow-sm bg-[#302782] text-[#FFFFFF] hover:bg-opacity-90"
+              className="w-full py-4.5 sm:py-5 text-lg font-bold rounded-2xl shadow-lg bg-[#302782] text-white hover:bg-[#3b3199] active:scale-[0.98] transition-all duration-200"
             >
-              ส่งคำขอจองห้องเรียน
+              ยืนยันการจองห้อง
             </Button>
           </div>
 
-          {/* Status Message Card */}
+          {/* Status Feedback */}
           {showStatus && (
-            <>
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
               {isRoomBusy ? (
-                /* 🚩 1. กรณีห้องไม่ว่าง: แสดง Card สีเทาแบบเต็ม (ตามที่พี่ต้องการ) */
-                <div className="mt-6 p-6 rounded-[24px] border border-gray-100 bg-gray-50 flex flex-col gap-3">
+                <div className="p-5 rounded-2xl border-2 border-red-50 bg-red-50/50 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-500">
-                      สถานะการตรวจสอบ
-                    </span>
-                    <div className="px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-600">
-                      ไม่ว่าง
-                    </div>
+                    <span className="text-sm font-bold text-red-700">ผลการตรวจสอบ</span>
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black bg-red-500 text-white uppercase tracking-wider">Occupied</span>
                   </div>
-                  <p className="text-sm font-bold text-red-600">
-                    {serverMessage}
-                  </p>
+                  <p className="text-sm font-bold text-red-600 leading-relaxed">{serverMessage}</p>
                 </div>
               ) : (
-                /* ✅ 2. กรณีอื่นๆ (สำเร็จ, Error อื่นๆ): แสดงแค่ข้อความตรงๆ */
-                <div className="mt-6 text-center">
-                  <p
-                    className={`text-lg font-bold ${serverMessage.includes("✅") ? "text-[#B2BB1E]" : "text-red-600"}`}
-                  >
-                    {serverMessage}
-                  </p>
+                <div className={`p-5 rounded-2xl text-center font-bold text-lg ${serverMessage.includes("✅") ? "bg-[#B2BB1E]/10 text-[#B2BB1E]" : "bg-red-50 text-red-600"}`}>
+                  {serverMessage}
                 </div>
               )}
-            </>
+            </div>
           )}
         </form>
       </div>

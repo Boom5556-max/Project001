@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Wrench, ChevronRight, Settings } from 'lucide-react';
+import { Lock, Wrench, ChevronRight, Settings, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
 
@@ -30,63 +30,78 @@ const RoomCard = ({ room }) => {
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative bg-[#FFFFFF] rounded-[32px] p-6 flex justify-between items-center border transition-all duration-300 mb-4 font-sans
+      className={`group relative bg-[#FFFFFF] rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 flex justify-between items-center border transition-all duration-300 mb-4 font-sans
         ${isDisabledForUser 
-          ? "opacity-60 grayscale cursor-not-allowed border-gray-100 bg-gray-50/50" 
-          : "hover:border-[#B2BB1E] hover:shadow-[0_8px_30px_-10px_rgba(0,0,0,0.08)] cursor-pointer border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]"
+          ? "opacity-60 grayscale cursor-not-allowed border-gray-100 bg-gray-50/50 shadow-none" 
+          : "hover:border-[#B2BB1E] hover:shadow-[0_15px_40px_-12px_rgba(48,39,130,0.12)] cursor-pointer border-gray-100 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.03)] active:scale-[0.98]"
         }
-        ${isCurrentlyInRepair && userRole === "staff" ? "border-amber-200 bg-amber-50/10" : ""} `}
+        ${isCurrentlyInRepair && userRole === "staff" ? "border-amber-200 bg-amber-50/20" : ""} `}
     >
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <h3 className={`text-2xl font-bold leading-none ${isDisabledForUser ? "text-gray-400" : "text-[#302782]"}`}>
+      <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0">
+        {/* ชื่อห้องและประเภท */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <h3 className={`text-xl sm:text-2xl font-black leading-none tracking-tight ${isDisabledForUser ? "text-gray-400" : "text-[#302782]"}`}>
             {room.room_id}
           </h3>
-          <span className="text-gray-200 text-xl font-light">|</span>
-          <p className={`text-base font-bold ${isDisabledForUser ? "text-gray-400" : "text-gray-500"}`}>
+          <span className="text-gray-200 text-lg sm:text-xl font-light">|</span>
+          <p className={`text-sm sm:text-base font-black truncate ${isDisabledForUser ? "text-gray-400" : "text-gray-500"}`}>
             {room.room_type}
           </p>
         </div>
         
-        <p className="text-gray-400 text-sm font-medium ml-0.5">{room.location}</p>
+        {/* สถานที่ */}
+        <p className="text-gray-400 text-[12px] sm:text-sm font-bold ml-0.5 opacity-80 uppercase tracking-wide">
+          {room.location}
+        </p>
 
-        <div className="flex items-center gap-3 mt-2">
-          <span className={`text-xs px-4 py-1.5 rounded-full font-bold ${
+        {/* Badges Area */}
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <span className={`text-[10px] sm:text-xs px-3 sm:px-4 py-1.5 rounded-xl font-black flex items-center gap-1.5 ${
             isDisabledForUser ? "bg-gray-200 text-gray-400" : "bg-gray-50 text-[#302782] border border-gray-100"
           }`}>
-            ความจุ {room.capacity} ที่นั่ง
+            <Users size={12} strokeWidth={3} /> {room.capacity} ที่นั่ง
           </span>
 
           {isCurrentlyInRepair && (
-            <span className="text-xs bg-[#302782] px-4 py-1.5 rounded-full text-[#FFFFFF] font-bold flex items-center gap-2 shadow-sm">
-              <Wrench size={14} strokeWidth={2.5} /> อยู่ระหว่างซ่อมแซม
+            <span className="text-[10px] sm:text-xs bg-[#302782] px-3 sm:px-4 py-1.5 rounded-xl text-[#FFFFFF] font-black flex items-center gap-2 shadow-sm animate-pulse-subtle">
+              <Wrench size={12} strokeWidth={3} /> กำลังปรับปรุง
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* สำหรับ Staff แสดงป้ายบอกว่ากำลังจัดการ */}
+      {/* Right Action Area */}
+      <div className="flex items-center gap-3 sm:gap-4 ml-4">
         {!isDisabledForUser && isCurrentlyInRepair && (
-          <span className="hidden md:block text-[10px] font-bold text-amber-600 bg-amber-100 px-3 py-1 rounded-lg">
-            โหมดเจ้าหน้าที่
+          <span className="hidden lg:block text-[10px] font-black tracking-widest text-amber-600 bg-amber-100 px-3 py-1.5 rounded-lg uppercase">
+            Admin Mode
           </span>
         )}
 
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shrink-0 ${
           isDisabledForUser 
             ? "bg-gray-100 text-gray-300" 
-            : "bg-gray-50 text-gray-300 group-hover:bg-[#302782] group-hover:text-[#FFFFFF]"
+            : "bg-gray-50 text-gray-300 group-hover:bg-[#302782] group-hover:text-[#FFFFFF] group-hover:shadow-lg group-hover:shadow-[#302782]/20"
         }`}>
           {isDisabledForUser ? (
-            <Lock size={28} strokeWidth={2} />
+            <Lock size={24} sm:size={28} strokeWidth={2.5} />
           ) : isCurrentlyInRepair ? (
-            <Settings size={28} strokeWidth={2} className="group-hover:rotate-90 transition-transform duration-500" />
+            <Settings size={24} sm:size={28} strokeWidth={2.5} className="group-hover:rotate-180 transition-transform duration-700" />
           ) : (
-            <ChevronRight size={28} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={24} sm:size={28} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
           )}
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes pulse-subtle {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.85; }
+        }
+        .animate-pulse-subtle {
+          animation: pulse-subtle 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

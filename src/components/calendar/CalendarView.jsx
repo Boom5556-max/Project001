@@ -16,16 +16,13 @@ const CalendarView = ({
     const isSchedule = props.isSchedule;
     const isClosed = props.temporarily_closed;
 
-    // 🚩 เช็คสิทธิ์ (Owner หรือ Staff)
     const isOwner = String(props.teacher_id) === String(currentUserId);
     const isStaff = String(currentUserRole || "").toLowerCase().trim() === "staff";
     const hasPermission = isOwner || isStaff;
 
-    // 🚩 กำหนดสถานะการแสดงผลเมื่ออยู่ในโหมดจัดการ
     const shouldElevate = isCancelMode && isSchedule && hasPermission && !isClosed;
     const shouldRestore = isCancelMode && isSchedule && hasPermission && isClosed;
 
-    // คุมโทนจุดสีด้านหน้าให้มีแค่ น้ำเงิน, เขียว, และเทา
     const dotColor = isClosed
       ? "bg-gray-400"
       : isSchedule
@@ -40,9 +37,9 @@ const CalendarView = ({
           ${isClosed ? "is-closed" : ""}
           ${isCancelMode && isClosed && hasPermission ? "already-closed-active" : ""}`}
       >
-        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dotColor}`}></span>
-        <span className="fc-event-time-bold">{eventInfo.timeText}</span>
-        <span className="fc-event-title-light">
+        <span className={`w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 rounded-full flex-shrink-0 ${dotColor}`}></span>
+        <span className="fc-event-time-bold text-[9px] sm:text-[0.8rem]">{eventInfo.timeText}</span>
+        <span className="fc-event-title-light text-[10px] sm:text-[0.85rem]">
           {isClosed ? `(งด) ${eventInfo.event.title}` : eventInfo.event.title}
         </span>
       </div>
@@ -50,21 +47,50 @@ const CalendarView = ({
   };
 
   return (
-    <div className="flex-grow w-full h-full bg-[#FFFFFF] p-4 md:p-6 flex flex-col relative font-sans">
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        events={events}
-        eventClick={onEventClick}
-        locale="th"
-        height="100%"
-        timeZone="UTC"
-        buttonText={{ today: "วันนี้", month: "เดือน", week: "สัปดาห์" }}
-        eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
-        eventContent={renderEventContent}
-      />
+    <div className="flex-grow w-full h-full bg-[#FFFFFF] p-2 sm:p-4 md:p-6 flex flex-col relative font-sans overflow-hidden">
+      <div className="calendar-container flex-grow h-full">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          events={events}
+          eventClick={onEventClick}
+          locale="th"
+          height="100%"
+          stickyHeaderDates={true}
+          timeZone="UTC"
+          // ปรับโครงสร้าง Toolbar ให้เหมาะกับมือถือ
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+          }}
+          buttonText={{ today: "วันนี้", month: "เดือน", week: "สัปดาห์" }}
+          eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
+          eventContent={renderEventContent}
+          dayMaxEvents={3} // จำกัดการแสดงผลบนจอเล็กไม่ให้ทะลัก
+        />
+      </div>
 
       <style>{`
+        /* --- Responsive Typography --- */
+        @media (max-width: 640px) {
+          .fc .fc-toolbar-title { 
+            font-size: 1.1rem !important; 
+          }
+          .fc .fc-button {
+            padding: 4px 8px !important;
+            font-size: 0.75rem !important;
+          }
+          .fc-event-inline-wrapper {
+            padding: 2px 4px !important;
+            gap: 4px !important;
+          }
+          .fc-daygrid-day-number {
+            font-size: 0.75rem !important;
+            padding: 4px !important;
+          }
+        }
+
         /* --- Event Base Styles --- */
         .fc-event-inline-wrapper { 
           display: flex; 
@@ -77,15 +103,12 @@ const CalendarView = ({
           transition: all 0.2s ease; 
         }
         
-        /* ขยายขนาด Font ให้ใหญ่อ่านง่ายขึ้น */
         .fc-event-time-bold { 
           font-weight: 700; 
-          font-size: 0.8rem; 
           white-space: nowrap; 
           color: inherit; 
         }
         .fc-event-title-light { 
-          font-size: 0.85rem; 
           font-weight: 600; 
           overflow: hidden; 
           text-overflow: ellipsis; 
@@ -93,60 +116,44 @@ const CalendarView = ({
           color: inherit; 
         }
 
-        /* --- โหมดปกติ: วิชาที่ถูกงดใช้ห้อง --- */
+        /* --- Special Status Classes --- */
         .is-closed {
           background-color: #F9FAFB !important; 
           color: #9CA3AF !important; 
           border: 1px solid #F3F4F6 !important;
-          cursor: pointer;
         }
 
-        .already-closed-active {
-          opacity: 1 !important;
-          filter: none !important;
-        }
-
-        /* --- โหมดจัดการ: ไฮไลต์สำหรับงดใช้ห้อง (กรอบน้ำเงิน) --- */
         .elevated-clean {
           background-color: #FFFFFF !important;
           color: #302782 !important;
           border: 1.5px solid #302782 !important;
-          border-radius: 12px !important;
           z-index: 50 !important;
-          box-shadow: 0 4px 15px rgba(48, 39, 130, 0.15) !important;
-          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(48, 39, 130, 0.1) !important;
         }
 
-        /* --- โหมดจัดการ: ไฮไลต์สำหรับยกเลิกการงด (กรอบเขียว) --- */
         .elevated-restore {
           background-color: #FFFFFF !important;
-          color: #302782 !important; 
           border: 1.5px solid #B2BB1E !important; 
-          border-radius: 12px !important;
           z-index: 50 !important;
-          pointer-events: auto !important;
-          box-shadow: 0 4px 15px rgba(178, 187, 30, 0.2) !important;
-          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(178, 187, 30, 0.15) !important;
         }
 
-        /* ซ่อนกรอบสีฟ้าพื้นฐานของ FullCalendar */
+        /* Hide Default FC Backgrounds */
         .fc-h-event, .fc-v-event { 
           background: transparent !important; 
           border: none !important; 
         }
         
-        /* เฟดข้อมูลที่ไม่เกี่ยวข้องลงเมื่ออยู่ในโหมดจัดการ (ไม่มี Blur ให้รกตา) */
         ${isCancelMode ? `
           .fc-event:not(:has(.elevated-clean)):not(:has(.elevated-restore)) {
-            opacity: 0.3;
+            opacity: 0.2;
             filter: grayscale(100%);
             pointer-events: none;
           }
         ` : ""}
 
-        /* --- ปรับโฉม FullCalendar UI (ปุ่มและหัวข้อ) --- */
+        /* --- UI Components Customization --- */
         .fc .fc-toolbar-title { 
-          font-size: 1.5rem !important; 
           font-weight: 700; 
           color: #302782; 
         }
@@ -154,50 +161,58 @@ const CalendarView = ({
           background-color: #FFFFFF !important; 
           color: #6B7280 !important;
           border: 1px solid #E5E7EB !important; 
-          border-radius: 12px !important; 
-          font-size: 0.9rem !important; 
+          border-radius: 10px !important; 
           font-weight: 600 !important;
-          padding: 8px 20px !important; 
           transition: all 0.2s;
-          text-transform: capitalize !important;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
         }
         .fc .fc-button-primary:hover {
-          background-color: #F9FAFB !important;
-          color: #302782 !important;
           border-color: #302782 !important;
+          color: #302782 !important;
         }
-        .fc .fc-button-active {
+
+        /* ✅ แก้ไขส่วนนี้: บังคับให้ปุ่มที่ถูกเลือก (เดือน/สัปดาห์) มีตัวหนังสือสีขาวเสมอ */
+        .fc .fc-button-primary.fc-button-active,
+        .fc .fc-button-primary.fc-button-active:hover {
           background-color: #302782 !important;
           color: #FFFFFF !important;
           border-color: #302782 !important;
         }
+
         .fc .fc-today-button { 
           background-color: #B2BB1E !important; 
           color: #FFFFFF !important; 
           border: none !important;
         }
-        .fc .fc-today-button:disabled {
-          opacity: 0.5;
-        }
         
-        /* ซอฟต์เส้นขอบตาราง */
+        /* Grid Appearance */
         .fc-theme-standard td, .fc-theme-standard th { 
-          border-color: #F3F4F6 !important; 
+          border-color: #F1F5F9 !important; 
         }
         .fc-col-header-cell-cushion {
-          color: #6B7280 !important;
-          font-weight: 600 !important;
-          padding: 12px 0 !important;
+          color: #94A3B8 !important;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 10px 0 !important;
         }
         .fc-daygrid-day-number {
-          color: #374151 !important;
-          font-weight: 600 !important;
-          font-size: 0.9rem !important;
-          padding: 8px !important;
+          color: #475569 !important;
+          font-weight: 700 !important;
         }
         .fc-daygrid-event-dot { 
           display: none !important; 
+        }
+        
+        /* สไตล์ Scrollbar สำหรับ Chrome/Safari */
+        .fc-scroller::-webkit-scrollbar {
+          width: 4px;
+        }
+        .fc-scroller::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+        .fc-scroller::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
         }
       `}</style>
     </div>

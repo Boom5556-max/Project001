@@ -37,43 +37,90 @@ const BookingDetailModal = ({
     }
   };
 
+  if (!booking) return null;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#FFFFFF] w-full max-w-md md:max-w-lg rounded-[32px] p-5 sm:p-7 flex flex-col shadow-2xl my-auto animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center mb-4 flex-shrink-0">
-          <h3 className="text-xl font-bold text-[#302782]">{isEditing ? "แก้ไขข้อมูล" : `ห้อง ${booking.room_id}`}</h3>
-          <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"><X size={20}/></button>
+    <div 
+      className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-[#302782]/30 backdrop-blur-md p-0 sm:p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[#FFFFFF] w-full max-w-lg rounded-t-[40px] sm:rounded-[32px] p-6 sm:p-8 flex flex-col shadow-2xl animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[95vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle bar สำหรับ Mobile */}
+        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden" />
+
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6 flex-shrink-0">
+          <div>
+            <p className="text-[10px] font-black text-[#B2BB1E] uppercase tracking-widest mb-1">
+              {isEditing ? "Mode: Editing" : `Status: ${booking.status}`}
+            </p>
+            <h3 className="text-2xl font-black text-[#302782]">
+              {isEditing ? "แก้ไขข้อมูลจอง" : `ห้อง ${booking.room_id}`}
+            </h3>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-3 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-all active:scale-90"
+          >
+            <X size={20}/>
+          </button>
         </div>
 
-        <div className="flex-grow space-y-3 mb-2">
+        {/* Content Scroll Area */}
+        <div className="flex-grow overflow-y-auto pr-1 custom-scrollbar space-y-4">
           {isEditing ? (
-            <div className="space-y-3 pb-2">
-              <EditField icon={MessageSquare} label="วัตถุประสงค์" value={editForm.purpose} onChange={v => setEditForm({...editForm, purpose: v})} />
-              <EditField icon={Calendar} label="วันที่" type="date" value={editForm.date} onChange={v => setEditForm({...editForm, date: v})} />
-              <div className="flex gap-3">
-                <EditField icon={ClockIcon} label="เริ่ม" type="time" value={editForm.start_time} onChange={v => setEditForm({...editForm, start_time: v})} />
-                <EditField icon={ClockIcon} label="สิ้นสุด" type="time" value={editForm.end_time} onChange={v => setEditForm({...editForm, end_time: v})} />
+            <div className="space-y-5 py-2">
+              <EditField icon={MessageSquare} label="วัตถุประสงค์การใช้ห้อง" value={editForm.purpose} onChange={v => setEditForm({...editForm, purpose: v})} />
+              <EditField icon={Calendar} label="วันที่ต้องการใช้งาน" type="date" value={editForm.date} onChange={v => setEditForm({...editForm, date: v})} />
+              <div className="grid grid-cols-2 gap-4">
+                <EditField icon={ClockIcon} label="เวลาเริ่ม" type="time" value={editForm.start_time} onChange={v => setEditForm({...editForm, start_time: v})} />
+                <EditField icon={ClockIcon} label="เวลาสิ้นสุด" type="time" value={editForm.end_time} onChange={v => setEditForm({...editForm, end_time: v})} />
               </div>
             </div>
           ) : (
-            <div className="space-y-3 pb-2">
-              <DetailItem icon={User} label="ผู้ขอใช้" value={getFullName(booking)} />
-              <DetailItem icon={Calendar} label="วันที่" value={formatDateForDisplay(booking.date)} />
-              <DetailItem icon={Timer} label="เวลา" value={`${booking.start_time?.slice(0,5)} - ${booking.end_time?.slice(0,5)}`} />
+            <div className="bg-gray-50/50 rounded-[24px] p-5 sm:p-6 space-y-4 border border-gray-100">
+              <DetailItem icon={User} label="ผู้ขอใช้งาน" value={getFullName(booking)} />
+              <div className="h-px bg-gray-100 w-full" />
+              <DetailItem icon={Calendar} label="วันที่จอง" value={formatDateForDisplay(booking.date)} />
+              <DetailItem icon={Timer} label="ช่วงเวลา" value={`${booking.start_time?.slice(0,5)} - ${booking.end_time?.slice(0,5)} น.`} />
+              <div className="h-px bg-gray-100 w-full" />
               <DetailItem icon={MessageSquare} label="วัตถุประสงค์" value={booking.purpose} />
             </div>
           )}
         </div>
 
+        {/* Action Section */}
         {!booking.isHistory && (
-          <div className="pt-3 border-t border-gray-100 flex-shrink-0 mt-2">
+          <div className="pt-6 sm:pt-8 border-t border-gray-100 flex-shrink-0 mt-4">
             {isEditing ? (
-              <div className="flex gap-2">
-                <Button className="flex-1 bg-[#302782] text-white rounded-2xl py-3 font-bold" onClick={onSaveEdit}><Save size={18} className="mr-2 inline"/> บันทึก</Button>
-                <Button className="bg-gray-200 text-gray-600 rounded-2xl px-6 py-3 font-bold" onClick={() => setIsEditing(false)}>ยกเลิก</Button>
+              <div className="flex gap-3">
+                <Button 
+                  variant="secondary"
+                  className="flex-[2] py-4" 
+                  onClick={onSaveEdit}
+                >
+                  <Save size={18} /> บันทึกการแก้ไข
+                </Button>
+                <Button 
+                  variant="danger" 
+                  className="flex-1 py-4"
+                  onClick={() => setIsEditing(false)}
+                >
+                  ยกเลิก
+                </Button>
               </div>
             ) : (
-              <ActionButtons userRole={userRole} booking={booking} onUpdateStatus={onUpdateStatus} onCancel={onCancel} onBan={onBan} onEdit={startEditing} />
+              <ActionButtons 
+                userRole={userRole} 
+                booking={booking} 
+                onUpdateStatus={onUpdateStatus} 
+                onCancel={onCancel} 
+                onBan={onBan} 
+                onEdit={startEditing} 
+              />
             )}
           </div>
         )}
@@ -88,23 +135,53 @@ const ActionButtons = ({ userRole, booking, onUpdateStatus, onCancel, onBan, onE
   const isApproved = booking.status === "approved";
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {userRole === "staff" && isPending && (
-        <div className="flex gap-3">
-          <Button className="flex-1 bg-[#B2BB1E] text-white rounded-2xl font-bold py-3.5 active:scale-95 transition-all" onClick={() => onUpdateStatus(bId)}>อนุมัติ</Button>
-          <Button className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold py-3.5 shadow-lg shadow-red-100 active:scale-95 transition-all" onClick={() => onCancel(bId)}>ไม่อนุมัติ</Button>
+        <div className="flex gap-4">
+          <Button 
+            variant="primary"
+            className="flex-1 py-4.5 shadow-lime-200" 
+            onClick={() => onUpdateStatus(bId)}
+          >
+            อนุมัติคำขอ
+          </Button>
+          <Button 
+            variant="danger"
+            className="flex-1 py-4.5 bg-red-500 text-white border-none hover:bg-red-600" 
+            onClick={() => onCancel(bId)}
+          >
+            ไม่อนุมัติ
+          </Button>
         </div>
       )}
+      
       {((userRole === "staff" || userRole === "teacher") && isApproved) && (
-        <Button className="w-full bg-red-500 text-white rounded-2xl font-bold py-3.5 active:scale-95 transition-all" onClick={() => onBan(bId)}>
-          <Ban size={18} className="mr-2 inline"/> งดใช้ห้อง
+        <Button 
+          variant="danger"
+          className="w-full py-4.5 bg-red-500 text-white border-none hover:bg-red-600 shadow-red-100" 
+          onClick={() => onBan(bId)}
+        >
+          <Ban size={18} /> แจ้งงดใช้ห้องเรียนนี้
         </Button>
       )}
+
       {userRole === "teacher" && isPending && (
-        <>
-          <Button className="w-full bg-[#302782] text-white rounded-2xl font-bold py-3.5" onClick={onEdit}><Edit3 size={18} className="mr-2 inline"/> แก้ไขข้อมูล</Button>
-          <Button className="w-full bg-gray-100 text-gray-500 hover:text-red-500 rounded-2xl font-bold py-3.5 transition-colors" onClick={() => onCancel(bId)}><Trash2 size={18} className="mr-2 inline"/> ยกเลิกคำขอ</Button>
-        </>
+        <div className="space-y-3">
+          <Button 
+            variant="secondary"
+            className="w-full py-4.5" 
+            onClick={onEdit}
+          >
+            <Edit3 size={18} /> แก้ไขข้อมูลการจอง
+          </Button>
+          <Button 
+            variant="ghost"
+            className="w-full py-4 text-red-500 hover:bg-red-50 hover:text-red-600" 
+            onClick={() => onCancel(bId)}
+          >
+            <Trash2 size={18} /> ยกเลิกคำขอจอง
+          </Button>
+        </div>
       )}
     </div>
   );
