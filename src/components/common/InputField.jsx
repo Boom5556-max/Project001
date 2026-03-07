@@ -9,29 +9,34 @@ const InputField = ({ label, icon: Icon, error, ...props }) => {
           {label}
         </label>
       )}
-      
+
       <div className="relative flex items-center">
         {/* Icon: ย้ายเข้ามาด้านใน Input เพื่อความ Modern */}
         {Icon && (
-          <div className={`absolute left-5 transition-colors duration-300 ${error ? 'text-red-400' : 'text-gray-400 group-focus-within:text-[#B2BB1E]'}`}>
+          <div
+            className={`absolute left-5 transition-colors duration-300 ${error ? "text-red-400" : "text-gray-400 group-focus-within:text-[#B2BB1E]"}`}
+          >
             <Icon size={20} strokeWidth={2.5} />
           </div>
         )}
-        
+
         <input
           {...props}
           className={`
-            w-full bg-white text-[#302782] text-sm sm:text-base font-bold rounded-[16px] sm:rounded-[20px] 
-            py-4 sm:py-4.5 outline-none transition-all duration-300
-            placeholder:text-gray-300 placeholder:font-medium
-            border-2
-            ${Icon ? 'pl-14 pr-6' : 'px-6'}
-            ${error 
-              ? 'border-red-100 bg-red-50/30 focus:border-red-500 focus:ring-4 focus:ring-red-500/10' 
-              : 'border-gray-100 focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 focus:bg-white'}
-            ${props.disabled ? 'bg-gray-50 cursor-not-allowed opacity-60' : ''}
-            ${props.className || ""}
-          `}
+          w-full bg-white text-[#302782] text-sm sm:text-base md:text-lg 
+          font-bold rounded-[16px] sm:rounded-[20px] 
+          py-4 sm:py-5 min-h-[56px] /* เพิ่ม min-h เพื่อความชัวร์บน Tablet */
+          outline-none transition-all duration-300
+          placeholder:text-gray-300 placeholder:font-medium
+          border-2 scroll-margin-top-[120px] /* เพิ่มส่วนนี้เพื่อช่วยเรื่องคีย์บอร์ดบัง */
+          ${Icon ? "pl-14 pr-6" : "px-6"}
+          ${
+          error
+          ? "border-red-100 bg-red-50/30 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
+          : "border-gray-100 focus:border-[#B2BB1E] focus:ring-4 focus:ring-[#B2BB1E]/10 focus:bg-white"
+          }
+          ${props.disabled ? "bg-gray-50 cursor-not-allowed opacity-60" : ""}
+          ${props.className || ""}`}
         />
       </div>
 

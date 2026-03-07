@@ -28,12 +28,32 @@ const BookingDetailModal = ({
   const onSaveEdit = async () => {
     const bId = booking.booking_id || booking.id;
     const result = await onUpdateBooking(bId, editForm);
+    
     if (result?.success) {
       setIsEditing(false);
       onClose();
-      showAlert("บันทึกการแก้ไขสำเร็จ", <CheckCircle size={50} className="text-[#B2BB1E]" />, null, false);
+      // ส่งครบ 8 ตำแหน่ง: title, icon, onConfirm, showConfirm, variant, showCloseButton, autoClose, showButtons
+      showAlert(
+        "บันทึกการแก้ไขสำเร็จ", 
+        <CheckCircle size={50} className="text-[#B2BB1E]" />, 
+        null, 
+        false,      // showConfirm
+        "primary",  // variant
+        false,      // showCloseButton
+        true,       // autoClose
+        false       // showButtons (ตัวที่ต้องการซ่อน)
+      );
     } else {
-      showAlert("แก้ไขไม่สำเร็จ", <XCircle size={50} />, null, false, "danger");
+      showAlert(
+        "แก้ไขไม่สำเร็จ", 
+        <XCircle size={50} className="text-red-500" />, 
+        null, 
+        false,      // showConfirm
+        "danger",   // variant
+        true,       // showCloseButton
+        false,      // autoClose
+        true        // showButtons (ให้แสดงปุ่มเพื่อให้ user กดปิด error ได้)
+      );
     }
   };
 
@@ -54,9 +74,6 @@ const BookingDetailModal = ({
         {/* Header */}
         <div className="flex justify-between items-center mb-6 flex-shrink-0">
           <div>
-            <p className="text-[10px] font-black text-[#B2BB1E] uppercase tracking-widest mb-1">
-              {isEditing ? "Mode: Editing" : `Status: ${booking.status}`}
-            </p>
             <h3 className="text-2xl font-black text-[#302782]">
               {isEditing ? "แก้ไขข้อมูลจอง" : `ห้อง ${booking.room_id}`}
             </h3>

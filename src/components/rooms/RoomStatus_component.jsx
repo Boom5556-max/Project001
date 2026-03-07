@@ -32,7 +32,7 @@ export const ErrorState = ({ message, onBack }) => (
     </div>
     <h2 className="text-3xl font-black text-[#302782] mb-3 tracking-tight">เกิดข้อผิดพลาด</h2>
     <p className="text-base sm:text-lg font-bold text-gray-400 mb-12 max-w-sm mx-auto leading-relaxed">
-      {message || "ขออภัย ไม่สามารถเข้าถึงข้อมูลได้ในขณะนี้"}
+      {message || "สเเกนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"}
     </p>
     <Button
       onClick={onBack}

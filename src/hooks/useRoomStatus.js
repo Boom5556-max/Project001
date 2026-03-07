@@ -30,7 +30,7 @@ export const useRoomStatusLogic = (id) => {
       if (err.response?.status === 401) {
         setError("หน้านี้จำเป็นต้องเข้าสู่ระบบก่อนดูข้อมูล");
       } else {
-        setError("ไม่พบข้อมูลห้อง หรือเกิดข้อผิดพลาดในการดึงข้อมูล");
+        setError("สเเกนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
       }
     } finally {
       setIsLoading(false);

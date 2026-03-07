@@ -16,19 +16,10 @@ const LoginForm = ({
   const { timer, isSent, isLoading, statusMsg } = authData;
 
   return (
-    /* 1. ปรับ max-w ให้ยืดหยุ่น: มือถือใช้เต็มจอแต่มี padding, จอใหญ่ล็อกที่ 400px-450px 
-       2. เพิ่ม Responsive Padding และ Margin
-    */
-    <div className="w-full max-w-[340px] sm:max-w-[400px] lg:max-w-[450px] mx-auto px-4 sm:px-0 transition-all duration-300">
+    // เพิ่ม w-full เพื่อความแน่นอนใน Layout
+    <div className="w-full mx-auto transition-all duration-300">
       
-      {/* Header: ปรับขนาดฟอนต์ตามหน้าจอ (Text scaling) */}
-      <div className="mb-6 sm:mb-10 text-right">
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black italic tracking-tighter leading-[0.8] text-[#2D2D86] select-none">
-          <span className="text-[#B4C424]">KU</span><br />LOGIN
-        </h1>
-      </div>
-
-      {/* Message Status: ปรับความสูงให้คงที่เพื่อไม่ให้ Layout กระโดดตอนข้อความมา */}
+      {/* Message Status */}
       <div className={`min-h-[24px] mb-4 text-xs sm:text-sm font-bold transition-all duration-200 ${statusMsg && !errorMsg ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"}`}>
         <p className={statusMsg?.includes("❌") ? "text-red-500" : "text-green-500"}>
           {statusMsg}
@@ -36,21 +27,20 @@ const LoginForm = ({
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
-        {/* Email Field */}
-        <div className="group">
-          <InputField
-            label="KU Email"
-            icon={Mail}
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="student.n@ku.th"
-            // ปรับขนาด input ข้างใน (ถ้า InputField รองรับ className)
-          />
-        </div>
+        {/* Email Field - เพิ่ม inputMode และ autoComplete เพื่อช่วยคีย์บอร์ดมือถือ */}
+        <InputField
+          label="KU Email"
+          icon={Mail}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="student.n@ku.th"
+        />
 
-        {/* ปุ่มขอ OTP: ปรับความสูงให้กดง่ายขึ้นบนมือถือ (Touch Target) */}
+        {/* ปุ่มขอ OTP */}
         <Button
           type="button"
           onClick={() => requestOTP(email)}
@@ -69,18 +59,19 @@ const LoginForm = ({
           )}
         </Button>
 
-        {/* ส่วน Verification Code */}
+        {/* ส่วน Verification Code - เพิ่ม inputMode เป็น numeric เพื่อให้เด้งแป้นตัวเลข */}
         <div className="relative">
           <InputField
             label="Verification Code"
             icon={Lock}
             type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             required
             maxLength={6}
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
+            onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))} // กันพิมพ์ตัวอักษรอื่น
             placeholder="000000"
-            // ปรับขนาดตัวอักษร OTP ให้เล็กลงหน่อยบนมือถือเพื่อไม่ให้ล้น
             className={`text-center text-2xl sm:text-3xl tracking-[0.2em] sm:tracking-[0.3em] font-black transition-colors ${errorMsg ? 'text-red-500 border-red-500' : 'text-[#2D2D86]'}`}
           />
           
@@ -92,7 +83,7 @@ const LoginForm = ({
           )}
         </div>
 
-        {/* ปุ่ม Submit: ใหญ่และเด่นชัด */}
+        {/* ปุ่ม Submit */}
         <Button
           type="submit"
           variant="primary"

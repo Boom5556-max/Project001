@@ -1,10 +1,19 @@
 import React, { useState } from "react";
-import { ChevronLeft, Plus, Edit3, Trash2, UserCog, Mail, Check, AlertCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  Plus,
+  Edit3,
+  Trash2,
+  UserCog,
+  Mail,
+  Check,
+  AlertCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUsers } from "../hooks/useUsers";
 import Navbar from "../components/layout/Navbar.jsx";
 import Button from "../components/common/Button.jsx";
-import UserFormModal from "../components/user/UserFormModal.jsx"; 
+import UserFormModal from "../components/user/UserFormModal.jsx";
 import ActionModal from "../components/common/ActionModal";
 
 const Users = () => {
@@ -21,7 +30,7 @@ const Users = () => {
     showConfirm: true,
     singleButton: false,
     variant: "primary",
-    showBg: true
+    showBg: true,
   });
 
   const openModal = (user = null) => {
@@ -29,16 +38,32 @@ const Users = () => {
     setIsModalOpen(true);
   };
 
-  const showAlert = (title, icon, onConfirm = null, showConfirm = true, singleButton = false, variant = "primary", showBg = true) => {
+  const showAlert = (
+    title,
+    icon,
+    onConfirmAction = null,
+    showConfirm = true,
+    singleButton = false,
+    variant = "primary",
+    showBg = true,
+  ) => {
     setAlertConfig({
       isOpen: true,
       title,
       icon,
-      onConfirm: onConfirm || (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
       showConfirm,
       singleButton,
       variant,
-      showBg
+      showBg,
+      onConfirm: () => {
+        // 1. สั่งปิดทันทีเพื่อให้ UI หายไป
+        setAlertConfig((prev) => ({ ...prev, isOpen: false }));
+
+        // 2. ถ้ามีการกดตกลง ให้รันคำสั่งที่ส่งมา
+        if (onConfirmAction) {
+          onConfirmAction();
+        }
+      },
     });
   };
 
@@ -51,38 +76,58 @@ const Users = () => {
         setAlertConfig((prev) => ({ ...prev, isOpen: false }));
         setTimeout(() => {
           if (!result.success) {
-            showAlert("ลบไม่สำเร็จ: " + (result.message || "เกิดข้อผิดพลาด"), null, null, false, true, "danger", false);
+            showAlert(
+              "ลบไม่สำเร็จ: " + (result.message || "เกิดข้อผิดพลาด"),
+              null,
+              null,
+              false,
+              true,
+              "danger",
+              false,
+            );
           } else {
-            showAlert("ลบผู้ใช้งานสำเร็จ", null, null, false, true, "primary", false);
+            showAlert(
+              "ลบผู้ใช้งานสำเร็จ", // title
+              <Check size={40} />, // icon
+              null, // onConfirm
+              null, // showConfirm
+              false, // singleButton (ถ้ามี 2 ปุ่ม ให้เป็น false)
+              "primary", // variant
+              true, // showBg (ต้อง true ถึงจะมีวงกลมรองหลัง)
+            );
           }
         }, 150);
       },
-      true, false, "danger", true
+      true,
+      false,
+      "danger",
+      true,
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
-      
+
       <div className="p-4 sm:p-6 md:p-10 pb-24 flex-grow max-w-5xl mx-auto w-full">
-        
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="none" 
-              onClick={() => navigate(-1)} 
+            <Button
+              variant="ghost"
+              size="none"
+              onClick={() => navigate(-1)}
               className="text-[#B2BB1E] bg-transparent p-1 hover:scale-110 transition-transform"
             >
               <ChevronLeft size={32} />
             </Button>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#302782]">จัดการผู้ใช้งาน</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#302782]">
+              จัดการผู้ใช้งาน
+            </h1>
           </div>
 
-          <Button 
-            onClick={() => openModal()} 
+          <Button
+            onClick={() => openModal()}
             className="w-full sm:w-auto bg-[#B2BB1E] text-white rounded-2xl px-6 py-3.5 flex items-center justify-center gap-2 font-black shadow-lg hover:bg-[#302782] transition-all active:scale-95"
           >
             <Plus size={20} /> เพิ่มผู้ใช้ใหม่
@@ -94,14 +139,16 @@ const Users = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4">
               <div className="w-12 h-12 border-4 border-[#302782] border-t-[#B2BB1E] rounded-full animate-spin"></div>
-              <p className="text-gray-400 font-bold animate-pulse">กำลังดึงข้อมูลผู้ใช้งาน...</p>
+              <p className="text-gray-400 font-bold animate-pulse">
+                กำลังดึงข้อมูลผู้ใช้งาน...
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:gap-6">
               {users.length > 0 ? (
                 users.map((u) => (
-                  <div 
-                    key={u.user_id} 
+                  <div
+                    key={u.user_id}
                     className="bg-white p-5 sm:p-6 rounded-[30px] sm:rounded-[35px] shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-4 sm:gap-5 w-full">
@@ -109,7 +156,7 @@ const Users = () => {
                       <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 bg-gray-50 rounded-2xl sm:rounded-[24px] flex items-center justify-center text-[#302782] border border-gray-100">
                         <UserCog size={28} className="sm:w-8 sm:h-8" />
                       </div>
-                      
+
                       <div className="flex-grow min-w-0">
                         <div className="flex flex-wrap items-center gap-x-2">
                           <span className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-tighter">
@@ -119,12 +166,12 @@ const Users = () => {
                             {u.name} {u.surname}
                           </h3>
                         </div>
-                        
+
                         <p className="text-gray-400 font-bold text-xs flex items-center gap-1.5 mt-1 truncate">
-                          <Mail size={14} className="shrink-0 text-[#B2BB1E]" /> 
+                          <Mail size={14} className="shrink-0 text-[#B2BB1E]" />
                           <span className="truncate">{u.email}</span>
                         </p>
-                        
+
                         <div className="mt-2.5">
                           <span className="inline-block px-3 py-1 rounded-full text-[10px] bg-[#302782]/5 text-[#302782] font-black uppercase tracking-widest border border-[#302782]/10">
                             {u.role}
@@ -135,16 +182,16 @@ const Users = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 w-full sm:w-auto justify-end sm:justify-start pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-50 mt-1 sm:mt-0">
-                      <button 
-                        onClick={() => openModal(u)} 
-                        className="flex-1 sm:flex-none p-3 bg-gray-50 sm:bg-white border border-gray-100 rounded-xl sm:rounded-2xl text-gray-400 hover:text-[#302782] hover:border-[#302782]/20 transition-all active:scale-90 flex justify-center items-center" 
+                      <button
+                        onClick={() => openModal(u)}
+                        className="flex-1 sm:flex-none p-3 bg-gray-50 sm:bg-white border border-gray-100 rounded-xl sm:rounded-2xl text-gray-400 hover:text-[#302782] hover:border-[#302782]/20 transition-all active:scale-90 flex justify-center items-center"
                         title="แก้ไข"
                       >
                         <Edit3 size={20} />
                       </button>
-                      <button 
-                        onClick={() => handleDelete(u.user_id)} 
-                        className="flex-1 sm:flex-none p-3 bg-gray-50 sm:bg-white border border-gray-100 rounded-xl sm:rounded-2xl text-gray-400 hover:text-red-500 hover:border-red-100 transition-all active:scale-90 flex justify-center items-center" 
+                      <button
+                        onClick={() => handleDelete(u.user_id)}
+                        className="flex-1 sm:flex-none p-3 bg-gray-50 sm:bg-white border border-gray-100 rounded-xl sm:rounded-2xl text-gray-400 hover:text-red-500 hover:border-red-100 transition-all active:scale-90 flex justify-center items-center"
                         title="ลบ"
                       >
                         <Trash2 size={20} />
@@ -155,7 +202,9 @@ const Users = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[40px] border-2 border-dashed border-gray-100">
                   <UserCog size={48} className="text-gray-200 mb-4" />
-                  <p className="text-gray-400 font-bold">ไม่พบข้อมูลผู้ใช้งานในระบบ</p>
+                  <p className="text-gray-400 font-bold">
+                    ไม่พบข้อมูลผู้ใช้งานในระบบ
+                  </p>
                 </div>
               )}
             </div>
@@ -165,11 +214,11 @@ const Users = () => {
 
       {/* Modals remain the same but ensure they are responsive inside their own components */}
       {isModalOpen && (
-        <UserFormModal 
-          user={editingUser} 
-          onClose={() => setIsModalOpen(false)} 
+        <UserFormModal
+          user={editingUser}
+          onClose={() => setIsModalOpen(false)}
           onSave={editingUser ? updateUser : addUser}
-          showAlert={showAlert} 
+          showAlert={showAlert}
         />
       )}
 
@@ -177,11 +226,12 @@ const Users = () => {
         <ActionModal
           icon={alertConfig.icon}
           title={alertConfig.title}
-          showConfirm={alertConfig.showConfirm}
-          singleButton={alertConfig.singleButton}
+          // Logic: ถ้าเป็นการแจ้งเตือนเฉยๆ ให้ซ่อนปุ่ม
+          // แต่ถ้าเป็นการยืนยัน ให้คงค่าเดิมไว้
+          showButtons={alertConfig.showConfirm !== null}
+          autoClose={alertConfig.showConfirm === null} // ปิดเองถ้าไม่มีปุ่มยืนยัน
           variant={alertConfig.variant}
           showBg={alertConfig.showBg}
-          buttonText="ตกลง"
           onClose={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={alertConfig.onConfirm}
         />

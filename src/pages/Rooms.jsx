@@ -32,7 +32,7 @@ const Rooms = () => {
     showConfirm: true,
     singleButton: false,
     variant: "primary",
-    showBg: true
+    showBg: true,
   });
 
   useEffect(() => {
@@ -52,16 +52,31 @@ const Rooms = () => {
     setIsModalOpen(true);
   };
 
-  const showAlert = (title, icon, onConfirm = null, showConfirm = true, singleButton = false, variant = "primary", showBg = true) => {
+  // ปรับแก้บรรทัดนี้ใน Rooms.jsx
+  const showAlert = (
+    title,
+    icon,
+    onConfirm = null,
+    showConfirm = true,
+    singleButton = false,
+    variant = "primary",
+    showBg = true,
+    autoClose = false, // เพิ่มตรงนี้
+    showButtons = null, // เพิ่มตรงนี้
+  ) => {
     setAlertConfig({
       isOpen: true,
       title,
       icon,
-      onConfirm: onConfirm || (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
+      onConfirm:
+        onConfirm ||
+        (() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))),
       showConfirm,
       singleButton,
       variant,
       showBg,
+      autoClose, // เพิ่มตรงนี้
+      showButtons, // เพิ่มตรงนี้
     });
   };
 
@@ -72,24 +87,40 @@ const Rooms = () => {
       async () => {
         const result = await deleteRoom(roomId);
         setAlertConfig((prev) => ({ ...prev, isOpen: false }));
+
         setTimeout(() => {
-          if (!result.success) {
-            showAlert("ลบไม่สำเร็จ: " + result.message, null, null, false, true, "danger", false);
-          } else {
-            showAlert("ลบห้องเรียนสำเร็จ", null, null, false, true, "primary", false);
-          }
+          // เมื่อลบเสร็จ ส่งค่า autoClose=true และ showButtons=false
+          showAlert(
+            result.success
+              ? "ลบห้องเรียนสำเร็จ"
+              : "ลบไม่สำเร็จ: " + result.message,
+            result.success ? (
+              <Check size={50} className="text-green-500" />
+            ) : (
+              <AlertCircle size={50} className="text-red-500" />
+            ),
+            null,
+            false,
+            false,
+            result.success ? "primary" : "danger",
+            false,
+            true, // autoClose = true
+            false, // showButtons = false (ซ่อนปุ่ม)
+          );
         }, 150);
       },
-      true, false, "danger", true
+      true,
+      false,
+      "danger",
+      true,
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
-      
+
       <div className="p-4 sm:p-6 md:p-10 pb-24 flex-grow max-w-7xl mx-auto w-full">
-        
         {/* Header Section: ปรับให้ Stack ในมือถือจอเล็กมาก */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-2">
@@ -101,7 +132,9 @@ const Rooms = () => {
             >
               <ChevronLeft size={32} />
             </Button>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#302782]">ห้องเรียน</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#302782]">
+              ห้องเรียน
+            </h1>
           </div>
 
           {userRole === "staff" && (
@@ -118,34 +151,39 @@ const Rooms = () => {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4">
             <div className="w-12 h-12 border-4 border-[#302782] border-t-[#B2BB1E] rounded-full animate-spin"></div>
-            <p className="text-gray-400 font-bold animate-pulse">กำลังดึงข้อมูลห้อง...</p>
+            <p className="text-gray-400 font-bold animate-pulse">
+              กำลังดึงข้อมูลห้อง...
+            </p>
           </div>
         ) : (
           /* Room Grid: ปรับจำนวน Column ตามขนาดหน้าจอ */
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 sm:gap-8">
             {rooms.length > 0 ? (
               rooms.map((room) => (
-                <div key={room.room_id} className="relative group bg-white rounded-[35px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div
+                  key={room.room_id}
+                  className="relative group bg-white rounded-[35px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
+                >
                   {/* ตัว RoomCard เดิม */}
                   <RoomCard room={room} />
 
                   {/* Staff Actions Overlay: ปรับให้ Responsive */}
                   {userRole === "staff" && (
-                    <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-2 sm:gap-3 z-10">
+                    <div className="RoomCard top-6 right-6 flex gap-3 z-10">
                       <button
-                        onClick={(e) => { e.stopPropagation(); openModal(room); }}
-                        className="p-2.5 sm:p-3 bg-white/90 backdrop-blur-md shadow-md rounded-xl sm:rounded-2xl text-gray-500 hover:text-[#302782] hover:bg-white transition-all border border-gray-100 active:scale-90"
+                        onClick={() => openModal(room)}
+                        className="p-3 bg-[#FFFFFF] shadow-sm rounded-2xl text-gray-500 hover:text-[#302782] transition-colors border border-gray-200"
                         title="แก้ไข"
                       >
-                        <Edit3 size={20} className="sm:w-6 sm:h-6" />
+                        <Edit3 size={24} />
                       </button>
 
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(room.room_id); }}
-                        className="p-2.5 sm:p-3 bg-white/90 backdrop-blur-md shadow-md rounded-xl sm:rounded-2xl text-gray-500 hover:text-red-600 hover:bg-white transition-all border border-gray-100 active:scale-90"
+                        onClick={() => handleDelete(room.room_id)}
+                        className="p-3 bg-[#FFFFFF] shadow-sm rounded-2xl text-gray-500 hover:text-red-600 transition-colors border border-gray-200"
                         title="ลบ"
                       >
-                        <Trash2 size={20} className="sm:w-6 sm:h-6" />
+                        <Trash2 size={24} />
                       </button>
                     </div>
                   )}
@@ -182,6 +220,8 @@ const Rooms = () => {
           onClose={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={alertConfig.onConfirm}
           showBg={alertConfig.showBg}
+          autoClose={alertConfig.autoClose} // ส่งค่านี้
+          showButtons={alertConfig.showButtons} // ส่งค่านี้
         />
       )}
     </div>

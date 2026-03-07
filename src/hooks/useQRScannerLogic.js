@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
 import jsQR from "jsqr";
 
-export const useQRScannerLogic = (activeTab) => {
+export const useQRScannerLogic = (activeTab, showAlert) => {
   const navigate = useNavigate();
   const [errorMsg, setErrorMsg] = useState("");
   const [scanResult, setScanResult] = useState("");
@@ -118,19 +118,28 @@ export const useQRScannerLogic = (activeTab) => {
   }, [activeTab, handleProcessScan]);
 
   const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsScanningFile(true);
-    try {
-      const decodedText = await scanWithJsQR(file);
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setIsScanningFile(true);
+  try {
+    const decodedText = await scanWithJsQR(file);
+    
+    // ตรวจสอบว่าสแกนเจอข้อมูลหรือไม่
+    if (decodedText) {
       handleProcessScan(decodedText);
-    } catch (err) {
-      alert("ไม่พบ QR Code ในรูปภาพ: ลองถ่ายให้ชัดขึ้นหรือแคปหน้าจอใหม่ครับ");
-    } finally {
-      setIsScanningFile(false);
-      e.target.value = null;
+    } else {
+      // 🔔 กรณีสแกนไม่เจอ (แต่ไม่มี Error จากระบบ)
+      showAlert("ไม่พบ QR Code ในรูปภาพนี้");
     }
-  };
+  } catch (err) {
+    // 🔔 กรณีมี Error เกิดขึ้นระหว่างการสแกน
+    showAlert("สแกนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+  } finally {
+    setIsScanningFile(false);
+    e.target.value = null; // รีเซ็ต input เพื่อให้เลือกรูปเดิมซ้ำได้
+  }
+};
 
   return { errorMsg, scanResult, isScanningFile, handleFileChange, setScanResult, setErrorMsg };
 };

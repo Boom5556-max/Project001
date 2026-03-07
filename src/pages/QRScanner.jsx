@@ -1,26 +1,30 @@
 import React, { useState } from "react";
-import { Camera, Image as ImageIcon } from "lucide-react";
+import { Camera, Image as ImageIcon, XCircle } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Button from "../components/common/Button.jsx";
 import { useQRScannerLogic } from "../hooks/useQRScannerLogic.js";
 import { SuccessOverlay, LoadingOverlay, CameraErrorOverlay } from "../components/qrscan/ScannerOverlays.jsx";
+import ActionModal from "../components/common/ActionModal";
 
 const QRScanner = () => {
   const [activeTab, setActiveTab] = useState("camera");
+  const [alertConfig, setAlertConfig] = useState({ isOpen: false, title: "" });
+
+  const showAlert = (title) => {
+    setAlertConfig({ isOpen: true, title });
+  };
+
   const { 
     errorMsg, scanResult, isScanningFile, 
     handleFileChange, setScanResult, setErrorMsg 
-  } = useQRScannerLogic(activeTab);
-
+  } = useQRScannerLogic(activeTab, showAlert); // ส่ง showAlert ไปให้ Hook ใช้ด้วย
+  
   return (
-    // ใช้ fixed inset-0 แทน h-screen เพื่อความนิ่งของ UI บนมือถือ
     <div className="fixed inset-0 bg-[#302782] flex flex-col font-sans overflow-hidden">
       <Navbar />
       
-      {/* ส่วนเนื้อหาหลัก: ปรับมุมโค้งและระยะ padding ตามขนาดจอ */}
       <div className="flex-grow bg-[#FFFFFF] rounded-t-[40px] sm:rounded-t-[50px] p-4 sm:p-8 flex flex-col items-center shadow-2xl relative transition-all duration-500">
         
-        {/* Tab Switcher: ปรับกว้างขึ้นในมือถือให้กดง่าย */}
         <div className="flex bg-gray-100 p-1 rounded-2xl mb-6 sm:mb-10 w-full max-w-[300px] shadow-sm">
           <TabButton 
             active={activeTab === "camera"} 
@@ -36,14 +40,12 @@ const QRScanner = () => {
           />
         </div>
 
-        {/* Scanner Container: จัดการสัดส่วนให้พอดีกับพื้นที่ที่เหลือ */}
         <div className="w-full flex flex-col items-center justify-center flex-grow">
           <div className="w-full max-w-[280px] xs:max-w-[320px] sm:max-w-sm">
             <div className="relative w-full aspect-square bg-black rounded-[40px] sm:rounded-[50px] overflow-hidden shadow-2xl border-[4px] sm:border-[6px] border-[#FFFFFF]">
               
               {activeTab === "camera" ? (
                 <div className="w-full h-full relative">
-                  {/* ID "reader" คือจุดที่ Library QR จะเข้ามา Render */}
                   <div id="reader" className="w-full h-full object-cover"></div>
                   {errorMsg && <CameraErrorOverlay message={errorMsg} />}
                 </div>
@@ -51,21 +53,30 @@ const QRScanner = () => {
                 <GalleryUpload onFileChange={handleFileChange} disabled={isScanningFile} />
               )}
 
-              {/* Overlays: มั่นใจว่าอยู่หน้าสุดเสมอ */}
               {scanResult && <SuccessOverlay />}
               {isScanningFile && <LoadingOverlay />}
             </div>
             
-            {/* คำแนะนำเพิ่มเติมใต้กล่องสแกน */}
             <p className="text-center mt-6 text-gray-400 text-xs sm:text-sm font-medium animate-pulse">
               {activeTab === "camera" ? "วาง QR Code ให้อยู่ในกรอบ" : "เลือกรูปภาพที่มี QR Code"}
             </p>
           </div>
         </div>
         
-        {/* Safe Area สำหรับมือถือที่มี Notch ด้านล่าง */}
         <div className="h-6 sm:h-0"></div>
       </div>
+
+      {/* Modal แจ้งเตือนเมื่อสแกนไม่ติด */}
+      {alertConfig.isOpen && (
+        <ActionModal
+          icon={<XCircle size={50} className="text-red-500" />}
+          title={alertConfig.title}
+          variant="danger"
+          autoClose={true}
+          showButtons={false}
+          onClose={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
+        />
+      )}
     </div>
   );
 };
@@ -78,9 +89,7 @@ const TabButton = ({ active, onClick, icon, label }) => (
     size="none"
     onClick={onClick}
     className={`flex-1 py-3 sm:py-3.5 rounded-xl text-[11px] sm:text-xs font-bold gap-2 transition-all duration-200 ${
-      active 
-        ? "bg-white shadow-md text-[#302782]" 
-        : "text-gray-500 hover:bg-gray-50"
+      active ? "bg-white shadow-md text-[#302782]" : "text-gray-500 hover:bg-gray-50"
     }`}
   >
     {icon}
