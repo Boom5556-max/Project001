@@ -64,8 +64,6 @@ export const CameraErrorOverlay = ({ message }) => (
       <span>รีเฟรชหน้าเว็บ</span>
     </Button>
     
-    <p className="mt-8 text-gray-500 text-xs font-bold uppercase tracking-widest">
-      KU Booking System
-    </p>
+    
   </div>
 );

@@ -1,13 +1,13 @@
 import React from "react";
-import Humanpic from "../../assets/image/picture1.jpg";
+import Building_26 from "../../assets/image/picture1.jpeg";
 
 const Loginpic = () => {
   return (
     <div className="w-full h-[35vh] lg:h-auto lg:w-[55%] relative shrink-0">
       <img 
-        src={Humanpic} 
+        src={Building_26} 
         alt="Teacher" 
-        className="absolute inset-0 w-full h-full object-cover object-top lg:object-center" 
+        className="absolute inset-0 w-full h-full object-cover object-top lg:object-center opacity-70" 
       />
       <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-tr from-[#2D2D86]/90 via-[#2D2D86]/40 to-transparent"></div>
       
